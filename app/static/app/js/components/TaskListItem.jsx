@@ -10,6 +10,7 @@ import HistoryNav from '../classes/HistoryNav';
 import PropTypes from 'prop-types';
 import TaskPluginActionButtons from './TaskPluginActionButtons';
 import MoveTaskDialog from './MoveTaskDialog';
+import IframeModal from './IframeModal';
 import PipelineSteps from '../classes/PipelineSteps';
 import Css from '../classes/Css';
 import Tags from '../classes/Tags';
@@ -48,7 +49,10 @@ class TaskListItem extends React.Component {
       view: "basic",
       showMoveDialog: false,
       actionLoading: false,
-      thumbLoadFailed: false
+      thumbLoadFailed: false,
+      showIframeModal: false,
+      iframeModalTitle: "",
+      iframeModalUrl: ""
     }
 
     for (let k in props.data){
@@ -62,6 +66,8 @@ class TaskListItem extends React.Component {
     this.checkForCommonErrors = this.checkForCommonErrors.bind(this);
     this.handleEditTaskSave = this.handleEditTaskSave.bind(this);
     this.setView = this.setView.bind(this);
+    this.openIframeModal = this.openIframeModal.bind(this);
+    this.closeIframeModal = this.closeIframeModal.bind(this);
 
     // Retrieve CSS values for status bar colors
     this.backgroundSuccessColor = Css.getValue('theme-background-success', 'backgroundColor');
@@ -92,6 +98,22 @@ class TaskListItem extends React.Component {
       return () => {
           this.setState({view: type});
       }
+  }
+
+  openIframeModal(title, url) {
+    this.setState({
+      showIframeModal: true,
+      iframeModalTitle: title,
+      iframeModalUrl: url
+    });
+  }
+
+  closeIframeModal() {
+    this.setState({
+      showIframeModal: false,
+      iframeModalTitle: "",
+      iframeModalUrl: ""
+    });
   }
 
   unloadTimer(){
@@ -501,14 +523,14 @@ class TaskListItem extends React.Component {
       if (showAssetButtons){
         if (task.available_assets.indexOf("orthophoto.tif") !== -1 || task.available_assets.indexOf("dsm.tif") !== -1){
           addActionButton(" " + _("View Map"), "btn-primary", "fa fa-globe", () => {
-            location.href = `/map/project/${task.project}/task/${task.id}/`;
+            this.openIframeModal(_("View Map"), `/map/project/${task.project}/task/${task.id}/`);
           });
         }else{
           showOrthophotoMissingWarning = task.available_assets.indexOf("orthophoto.tif") === -1;
         }
 
         addActionButton(" " + _("View 3D Model"), "btn-primary", "fa fa-cube", () => {
-          location.href = `/3d/project/${task.project}/task/${task.id}/`;
+          this.openIframeModal(_("View 3D Model"), `/3d/project/${task.project}/task/${task.id}/`);
         });
       }
 
@@ -618,7 +640,7 @@ class TaskListItem extends React.Component {
                     {stats && stats.area &&
                     <tr>
                       <td><strong>{_("Area:")}</strong></td>
-                      <td>{parseFloat(stats.area.toFixed(2)).toLocaleString()} m&sup2;</td>
+                      <td>{parseFloat(stats.area.toFixed(2) / 666.667 / 2).toLocaleString()} 亩;</td>
                     </tr>}
                     {stats && stats.pointcloud && stats.pointcloud.points &&
                     <tr>
@@ -686,10 +708,11 @@ class TaskListItem extends React.Component {
               : ""}
             </div>
           </div>
-          <div className="row clearfix">
+          <div className="row clearfix" flex="dir:left cross:center">
             {actionButtons}
-          </div>
           <TaskPluginActionButtons task={task} disabled={disabled} />
+
+          </div>
         </div>
       );
 
@@ -812,6 +835,12 @@ class TaskListItem extends React.Component {
                 saveAction={this.moveTaskAction}
             />
         : ""}
+        <IframeModal
+          show={this.state.showIframeModal}
+          title={this.state.iframeModalTitle}
+          url={this.state.iframeModalUrl}
+          onHide={this.closeIframeModal}
+        />
         <div className="row">
           <div className="col-xs-7 col-sm-6 col-md-5 col-lg-6 name">
             <i onClick={this.toggleExpanded} className={"clickable far " + (this.state.expanded ? "fa-minus-square" : " fa-plus-square")}></i> <a href="javascript:void(0);" onClick={this.toggleExpanded} className="name-link">{name}</a>

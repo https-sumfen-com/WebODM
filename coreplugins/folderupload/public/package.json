@@ -1,0 +1,9 @@
+{
+  "name": "folderupload",
+  "version": "1.0.0",
+  "description": "New task button with folder upload functionality",
+  "main": "main.js",
+  "dependencies": {
+    "react": "^16.0.0"
+  }
+}

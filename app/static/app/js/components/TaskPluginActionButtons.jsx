@@ -38,7 +38,7 @@ class TaskPluginActionButtons extends React.Component {
     render(){
         if (this.state.buttons.length > 0){
             return (
-              <div className={"row plugin-action-buttons " + (this.props.disabled ? "disabled" : "")}>
+              <div className={"row plugin-action-buttons" + (this.props.disabled ? "disabled" : "")}>
                   {this.state.buttons.map((button, i) => <div key={i}>{button}</div>)}
               </div>);
         }else{
