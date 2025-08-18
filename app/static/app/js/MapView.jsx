@@ -12,7 +12,7 @@ class MapView extends React.Component {
     title: "",
     public: false,
     publicEdit: false,
-    shareButtons: true,
+    shareButtons: false,
     permissions: ["view"],
     project: null
   };

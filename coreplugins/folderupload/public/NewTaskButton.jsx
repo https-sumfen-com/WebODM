@@ -28,6 +28,9 @@ class NewTaskButton extends React.Component {
         
         // 绑定事件监听器
         this.dealFile = this.dealFile.bind(this);
+        
+        // 生成唯一实例ID
+        this.instanceId = `newtaskbutton_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
     handleNewTask = () => {
@@ -72,6 +75,11 @@ class NewTaskButton extends React.Component {
     componentWillUnmount() {
         // 移除事件监听器
         window.removeEventListener("getFileData", this.dealFile);
+        
+        // 如果当前实例是活跃实例，清除标记
+        if (window.activeTaskPanelInstance === this.instanceId) {
+            window.activeTaskPanelInstance = null;
+        }
     }
 
     selectFolderAndProcess = () => {
@@ -175,6 +183,15 @@ class NewTaskButton extends React.Component {
             return;
         }
 
+        // 检查是否已有其他实例在显示任务面板
+        if (window.activeTaskPanelInstance && window.activeTaskPanelInstance !== this.instanceId) {
+            // alert('已有任务面板正在使用中，请稍后再试');
+            return;
+        }
+
+        // 设置当前实例为活跃实例
+        window.activeTaskPanelInstance = this.instanceId;
+
         this.setState({
             pendingTaskTypes: pendingTaskTypes,
             currentTaskType: pendingTaskTypes[0],
@@ -225,6 +242,10 @@ class NewTaskButton extends React.Component {
         } else {
             // 所有任务都创建完成
             console.log('所有任务创建完成');
+            // 清除活跃实例标记
+            if (window.activeTaskPanelInstance === this.instanceId) {
+                window.activeTaskPanelInstance = null;
+            }
             this.setState({
                 showTaskPanel: false,
                 currentTaskType: null,
@@ -234,6 +255,10 @@ class NewTaskButton extends React.Component {
     }
 
     handleTaskCancel = () => {
+        // 清除活跃实例标记
+        if (window.activeTaskPanelInstance === this.instanceId) {
+            window.activeTaskPanelInstance = null;
+        }
         this.setState({
             showTaskPanel: false,
             currentTaskType: null,
@@ -433,7 +458,7 @@ class NewTaskButton extends React.Component {
                 React.createElement('span', {
                     key: 'text',
                     className: 'hidden-xs'
-                }, processing ? ' 处理中...' : ' 新建文件夹任务')
+                }, processing ? ' 处理中...' : ' 新建分析任务')
             ]),
 
             // 类型选择弹窗

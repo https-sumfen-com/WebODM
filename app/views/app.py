@@ -84,6 +84,7 @@ def map(request, project_pk=None, task_pk=None):
                 'map-items': json.dumps(mapItems),
                 'title': title,
                 'public': 'false',
+                'selected-map-type': 'plant' if '多光谱' in title else 'auto',
                 'share-buttons': 'false' if settings.DESKTOP_MODE else 'true',
                 'permissions': json.dumps(get_permissions(request.user, project)),
                 'project': json.dumps(projectInfo),

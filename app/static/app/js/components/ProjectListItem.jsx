@@ -658,7 +658,7 @@ class ProjectListItem extends React.Component {
           <div className="btn-group project-buttons">
             {this.hasPermission("add") ? 
               <div className={"asset-download-buttons btn-group " + (this.state.upload.uploading ? "hide" : "")}>
-                <button type="button" 
+                {/* <button type="button" 
                       className="btn btn-primary btn-sm"
                       onClick={this.handleUpload}
                       ref={this.setRef("uploadButton")}>
@@ -669,7 +669,7 @@ class ProjectListItem extends React.Component {
                       className="btn btn-default btn-sm"
                       onClick={this.handleImportTask}>
                   <i className="glyphicon glyphicon-import"></i> <span className="hidden-xs">{_("Import")}</span>
-                </button>
+                </button> */}
                 {this.state.buttons.map((button, i) => <React.Fragment key={i}>{button}</React.Fragment>)}
               </div>
             : ""}

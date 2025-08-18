@@ -70,11 +70,11 @@ class CloudUploadButton extends React.Component {
                              window.location.hostname === '127.0.0.1' ||
                              window.location.port === '8000';
         
-        if (isDevelopment) {
-            return 'http://192.168.3.59:8080/#/growthMap';
-        } else {
+        // if (isDevelopment) {
+        //     return 'http://192.168.3.59:8080/#/growthMap';
+        // } else {
             return 'http://172.17.0.1:8088/#/growthMap';
-        }
+        // }
     };
     
     render() {

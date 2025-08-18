@@ -33,7 +33,8 @@ PluginsAPI.Dashboard.addNewTaskButton([
         // 渲染组件
         ReactDOM.render(
             React.createElement(UploadTaskList, {
-                taskManager: window.FolderUploadTaskManager
+                taskManager: window.FolderUploadTaskManager,
+                onNewTaskAdded: args.onNewTaskAdded
             }),
             container
         );
