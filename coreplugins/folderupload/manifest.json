@@ -1,0 +1,13 @@
+{
+    "name": "Folder Upload",
+    "webodmMinVersion": "2.5.0",
+    "description": "Add new task button with folder upload functionality",
+    "version": "1.0.0",
+    "author": "chinesehui",
+    "email": "developer@webodm.org",
+    "repository": "https://github.com/OpenDroneMap/WebODM",
+    "tags": ["folder", "upload", "newtask"],
+    "homepage": "https://github.com/OpenDroneMap/WebODM",
+    "experimental": true,
+    "deprecated": false
+}

@@ -67,7 +67,7 @@ APP_DEFAULT_LOGO = os.path.join('app', 'static', 'app', 'img', 'logo512.png')
 
 # In single user mode, a default admin account is created and automatically
 # used so that no login windows are displayed
-SINGLE_USER_MODE = False
+SINGLE_USER_MODE = True
 
 # URL to redirect to if there are no processing nodes when visiting the dashboard
 PROCESSING_NODES_ONBOARDING = None
@@ -123,10 +123,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'app.middleware.user.LoginDefault',
+    'app.middleware.csrf.NotUseCsrfTokenMiddlewareMixin',
 ]
 
 ROOT_URLCONF = 'webodm.urls'

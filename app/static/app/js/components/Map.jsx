@@ -41,7 +41,7 @@ class Map extends React.Component {
     mapType: "orthophoto",
     public: false,
     publicEdit: false,
-    shareButtons: true,
+    shareButtons: false,
     permissions: ["view"],
     thermal: false
   };
@@ -428,14 +428,7 @@ class Map extends React.Component {
                                 <div>Bounds: [${layer.options.bounds.toBBoxString().split(",").join(", ")}]</div>
                                 <div class="popup-download-assets loading">
                                   <i class="fa loading fa-spin fa-sync fa-spin fa-fw"></i>
-                                </div>
-
-                                <button
-                                    onclick="location.href='${this.tdPopupButtonUrl(meta.task)}';"
-                                    type="button"
-                                    class="switchModeButton btn btn-sm btn-secondary">
-                                    <i class="fa fa-cube"></i> 3D
-                                </button>`;
+                                </div>`;
 
             layer.bindPopup(popup);
 
@@ -1055,19 +1048,17 @@ _('Example:'),
           
           {this.state.pluginActionButtons.map((button, i) => <div key={i}>{button}</div>)}
           {((this.state.singleTask || this.props.project) && this.props.shareButtons && !this.props.public) ? 
-            <ShareButton 
-              ref={(ref) => { this.shareButton = ref; }}
-              task={this.state.singleTask}
-              project={this.props.project}
-              linksTarget="map"
-              queryParams={{t: this.props.mapType}}
-            />
+            // <ShareButton 
+            //   ref={(ref) => { this.shareButton = ref; }}
+            //   task={this.state.singleTask}
+            //   project={this.props.project}
+            //   linksTarget="map"
+            //   queryParams={{t: this.props.mapType}}
+            // />
+            ""
           : ""}
           
-          <SwitchModeButton 
-            task={this.state.singleTask}
-            type="mapToModel" 
-            public={this.props.public} />
+        
         </div>
       </div>
     );

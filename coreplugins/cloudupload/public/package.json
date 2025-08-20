@@ -1,0 +1,8 @@
+{
+    "name": "cloudupload-plugin",
+    "version": "1.0.0",
+    "description": "Cloud upload plugin for WebODM",
+    "main": "main.js",
+    "dependencies": {},
+    "devDependencies": {}
+}

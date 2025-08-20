@@ -67,7 +67,8 @@ class Dashboard extends React.Component {
       <Router basename="/dashboard">
         <div>
           {this.props.permissions.indexOf("add_project") !== -1 ? 
-          <div className="text-right add-button">
+          <div className="text-right add-button" style={{padding: '10px 15px', backgroundColor: '#f6f6f6'}} flex="dir:left main:justify cross:center">
+            <h3>长势分析</h3>
              <button type="button" 
                     className="btn btn-primary btn-sm"
                     onClick={this.handleAddProject}>

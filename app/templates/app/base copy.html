@@ -28,12 +28,10 @@
     <link rel="icon" type="image/png" href="{% settings_image_url 'app_logo_favicon' %}" sizes="32x32">
 
     <link rel="stylesheet" type="text/css" href="{% static 'app/css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'app/css/flex.css' %}" />
-
 
     <link rel="preload" href="{% static 'app/webfonts/fa-regular-400.woff2' %}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{% static 'app/webfonts/fa-solid-900.woff2' %}" as="font" type="font/woff2" crossorigin="anonymous">
-    <!-- <link rel="stylesheet" type="text/css" href="{% static 'app/js/vendor/test/style.css' %}" /> -->
+    <link rel="stylesheet" type="text/css" href="{% static 'app/js/vendor/test/style.css' %}" />
     
     <link href="{% static 'app/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'app/css/metisMenu.min.css' %}" rel="stylesheet">
@@ -91,7 +89,29 @@
     <![endif]-->
     <div id="wrapper">
         {{ SETTINGS.theme.html_before_header|safe }}
+ <!--[if lt IE 8]>
+        <nav id="navbar-top" class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                {% block navbar-top-links %}{% endblock %}
+            
+                {% if '/public/task/' in request.path and request.user.is_anonymous and SETTINGS.organization_website %}
+                    <a class="navbar-brand" href="{{ SETTINGS.organization_website }}"><img src="{% settings_image_url 'app_logo_36' %}" alt="{{ SETTINGS.app_name }}" /></a>
+                    <a class="navbar-link" href="{{ SETTINGS.organization_website }}"><p class="navbar-text">{{ SETTINGS.app_name }}</p></a>
+                {% else %}
+                    <a class="navbar-brand" href="/"><img src="{% settings_image_url 'app_logo_36' %}" alt="{{ SETTINGS.app_name }}" /></a>
+                    <a class="navbar-link" href="/"><p class="navbar-text">{{ SETTINGS.app_name }}</p></a>
+                {% endif %}
+            </div>
 
+            {% block navbar-sidebar %}{% endblock %}
+        </nav>
+ <![endif]-->
         {% block page-wrapper %}{{ SETTINGS.theme.html_after_header|safe }}{% endblock %}
     </div>
 
@@ -149,7 +169,7 @@ $(function(){
 
 </script>
 <script src="{% static 'app/js/vendor/bootstrap.min.js' %}"></script>
-<!-- <script src="{% static 'app/js/vendor/test/app.umd.cjs' %}"></script> -->
+<script src="{% static 'app/js/vendor/test/app.umd.cjs' %}"></script>
 
 {{ SETTINGS.theme.html_after_body|safe }}
 </html>
