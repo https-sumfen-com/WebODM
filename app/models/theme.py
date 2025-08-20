@@ -18,11 +18,11 @@ class Theme(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False, help_text=_("Name of theme"), verbose_name=_("Name"))
 
     # Similar to how discourse.org does it
-    primary = ColorField(default='#2c3e50', help_text=_("Most text, icons, and borders."), verbose_name=_("Primary"))
+    primary = ColorField(default='#202020', help_text=_("Most text, icons, and borders."), verbose_name=_("Primary"))
     secondary = ColorField(default='#ffffff', help_text=_("The main background color, and text color of some buttons."), verbose_name=_("Secondary"))
     tertiary = ColorField(default='#3498db', help_text=_("Navigation links."), verbose_name=_("Tertiary"))
 
-    button_primary = ColorField(default='#2c3e50', help_text=_("Primary button color."), verbose_name=_("Button Primary"))
+    button_primary = ColorField(default='#30A675', help_text=_("Primary button color."), verbose_name=_("Button Primary"))
     button_default = ColorField(default='#95a5a6', help_text=_("Default button color."), verbose_name=_("Button Default"))
     button_danger = ColorField(default='#e74c3c', help_text=_("Delete button color."), verbose_name=_("Button Danger"))
 

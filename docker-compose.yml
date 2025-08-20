@@ -22,9 +22,12 @@ services:
       - ${WO_MEDIA_DIR}:/webodm/app/media:z
       - ./app/static:/webodm/app/static:z,rw
       - ./app/templates:/webodm/app/templates:z,rw
+      - ./app/middleware:/webodm/app/middleware:z,rw
       - ./app/views:/webodm/app/views:z,rw
+      - ./app/models:/webodm/app/models:z,rw
       - ./coreplugins:/webodm/coreplugins:z
       - ./webodm:/webodm/webodm:z
+      - ./LOCALES:/webodm/LOCALES:z
     ports:
       - "${WO_PORT}:8000"
     depends_on:
@@ -49,15 +52,20 @@ services:
     oom_score_adj: -500
   worker:
     image: opendronemap/webodm_webapp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: worker
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media:z
       - ./app/static:/webodm/app/static:z,rw
       - ./app/templates:/webodm/app/templates:z,rw
+      - ./app/middleware:/webodm/app/middleware:z,rw
       - ./app/views:/webodm/app/views:z,rw
+      - ./app/models:/webodm/app/models:z,rw
       - ./coreplugins:/webodm/coreplugins:z
       - ./webodm:/webodm/webodm:z
+      - ./LOCALES:/webodm/LOCALES:z
     depends_on:
       - db
       - broker
