@@ -522,7 +522,7 @@ class UploadTaskList extends React.Component {
                     addedTaskKeys.add(taskKey);
                     allTasks.push({
                         id: reportTask.id,
-                        name: reportTask.odm_job_name || reportTask.odm_task_id, // 使用odm_task_id作为任务名
+                        name: reportTask.job && reportTask.job.odm_job_name, // 使用odm_task_id作为任务名
                         type: reportTask.algo_name || 'ndvi',
                         status: this.mapReportStatus(reportTask.state),
                         progress: reportTask.progress || 0,
