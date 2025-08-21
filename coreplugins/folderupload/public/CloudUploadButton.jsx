@@ -7,8 +7,8 @@ class CloudUploadButton extends React.Component {
         this.state = {
             uploading: false,
             showModal: false,
-            // ipConfig: '192.168.3.249' // TODO: 配置IP地址
-            ipConfig: 'localhost' // TODO: 配置IP地址
+            ipConfig: '192.168.3.249', // TODO: 配置IP地址
+            buttonHidden: false // 控制按钮是否隐藏
         };
     }
 
@@ -77,13 +77,13 @@ class CloudUploadButton extends React.Component {
     // 处理来自 iframe 的消息
     handleMessage = async (event) => {
         const { type, data } = event.data;
-        
+
         // 只处理来自当前组件对应iframe的消息
         const iframe = document.getElementById(`cloudUploadIframe-${this.componentId}`);
         if (!iframe || !this.state.showModal || event.source !== iframe.contentWindow) {
             return;
         }
-        
+
         if (type === 'IFRAME_LOADED') {
             // 获取task的project_id和task_id
             const projectId = this.props.task.project || this.props.task.projectId;
@@ -126,20 +126,20 @@ class CloudUploadButton extends React.Component {
                 try {
                     await this.uploadReport(projectId, taskId, reportNo, this.props.task.name);
                     console.log('报告上传成功:', reportNo);
+                    setTimeout(() => {
+                        // 调用refresh方法刷新任务状态
+                        if (this.props.onRefresh) {
+                            this.props.onRefresh();
+                        }
+                        // 隐藏当前按钮
+                        this.setState({ buttonHidden: true });
+                    }, 1000);
                 } catch (error) {
                     console.error('报告上传失败:', error);
                 }
 
                 setTimeout(() => {
                     this.setState({ showModal: false });
-                    // 可以在这里触发刷新或其他回调
-                    if (this.props.onUploadComplete) {
-                        this.props.onUploadComplete(data);
-                    }
-                    // 调用refresh方法刷新任务状态
-                    if (this.props.onRefresh) {
-                        this.props.onRefresh();
-                    }
                 }, 1000);
             }
         }
@@ -168,7 +168,12 @@ class CloudUploadButton extends React.Component {
 
     render() {
         const { disabled } = this.props;
-        const { uploading, showModal } = this.state;
+        const { uploading, showModal, buttonHidden } = this.state;
+        
+        // 如果按钮被隐藏，返回null
+        if (buttonHidden) {
+            return null;
+        }
 
         return (
             <>
@@ -201,18 +206,18 @@ class CloudUploadButton extends React.Component {
                                     <h4 className="modal-title">上传到云端</h4>
                                 </div>
                                 <div className="modal-body" style={{ padding: 0, flexShrink: 1, flexGrow: 1, overflow: 'hidden', maxHeight: 10000 }}>
-                    <iframe
-                        id={`cloudUploadIframe-${this.componentId}`}
-                        src={this.getIframeUrl()}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            border: 'none',
-                            overflow: 'hidden'
-                        }}
-                        title="云端上传"
-                    />
-                </div>
+                                    <iframe
+                                        id={`cloudUploadIframe-${this.componentId}`}
+                                        src={this.getIframeUrl()}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            border: 'none',
+                                            overflow: 'hidden'
+                                        }}
+                                        title="云端上传"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
