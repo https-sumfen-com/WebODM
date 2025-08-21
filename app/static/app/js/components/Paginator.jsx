@@ -63,6 +63,10 @@ class Paginator extends React.Component {
             this.search();
         }
     }
+
+    handleRefresh = () => {
+        window.location.reload();
+    }
     
     search = () => {
         this.props.history.push({search: this.getQueryForPage(1)});
@@ -137,6 +141,13 @@ class Paginator extends React.Component {
             <li className="btn-group">
                 <a href="javascript:void(0);" className="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i className="fa fa-sort-alpha-down" title={_("Sort")}></i></a>
                 <SortPanel selected={this.state.sortKey} items={this.sortItems} onChange={this.sortChanged} />
+            </li>
+            <li className="btn-group">
+                <a href="javascript:void(0);" 
+                   onClick={this.handleRefresh}
+                   title={_("Refresh")}>
+                    <i className="fa fa-sync"></i>
+                </a>
             </li>
         </ul>);
 

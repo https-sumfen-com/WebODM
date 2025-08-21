@@ -136,6 +136,10 @@ class CloudUploadButton extends React.Component {
                     if (this.props.onUploadComplete) {
                         this.props.onUploadComplete(data);
                     }
+                    // 调用refresh方法刷新任务状态
+                    if (this.props.onRefresh) {
+                        this.props.onRefresh();
+                    }
                 }, 1000);
             }
         }
@@ -176,7 +180,7 @@ class CloudUploadButton extends React.Component {
                 >
                     <i className="fa fa-cloud-upload"></i>
                     <span className="hidden-xs">
-                        {uploading ? ' 上传中...' : ' 上传s到云端'}
+                        {uploading ? ' 上传中...' : ' 上传到云端'}
                     </span>
                 </button>
 

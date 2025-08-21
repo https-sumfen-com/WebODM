@@ -529,9 +529,9 @@ class TaskListItem extends React.Component {
           showOrthophotoMissingWarning = task.available_assets.indexOf("orthophoto.tif") === -1;
         }
 
-        addActionButton(" " + _("View 3D Model"), "btn-primary", "fa fa-cube", () => {
-          this.openIframeModal(_("View 3D Model"), `/3d/project/${task.project}/task/${task.id}/`);
-        });
+        // addActionButton(" " + _("View 3D Model"), "btn-primary", "fa fa-cube", () => {
+        //   this.openIframeModal(_("View 3D Model"), `/3d/project/${task.project}/task/${task.id}/`);
+        // });
       }
 
       if (editable || (!task.processing_node)){
@@ -673,7 +673,7 @@ class TaskListItem extends React.Component {
               </div>
               {!this.state.thumbLoadFailed && task.status === statusCodes.COMPLETED ? 
               <div className="col-md-3 col-sm-2 text-center">
-                <a href={`/map/project/${task.project}/task/${task.id}/`}>
+                <a href="javascript:void(0);" onClick={() => this.openIframeModal(_("View Map"), `/map/project/${task.project}/task/${task.id}/`)}>
                   <img onError={this.handleThumbError} className="task-thumbnail" src={this.thumbnailUrl()} alt={_("Thumbnail")}/>
                 </a>
               </div> : ""}
@@ -710,7 +710,7 @@ class TaskListItem extends React.Component {
           </div>
           <div className="row clearfix" flex="dir:left cross:center">
             {actionButtons}
-          <TaskPluginActionButtons task={task} disabled={disabled} />
+          <TaskPluginActionButtons task={task} disabled={disabled} onRefresh={() => this.refresh()} />
 
           </div>
         </div>

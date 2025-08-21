@@ -24,16 +24,18 @@ class ProjectListItem extends React.Component {
       data: PropTypes.object.isRequired, // project json
       onDelete: PropTypes.func,
       onTaskMoved: PropTypes.func,
-      onProjectDuplicated: PropTypes.func
+      onProjectDuplicated: PropTypes.func,
+      defaultShowTaskList: PropTypes.bool
   }
 
   constructor(props){
     super(props);
 
     this.historyNav = new HistoryNav(props.history);
-
     this.state = {
-      showTaskList: this.historyNav.isValueInQSList("project_task_open", props.data.id),
+      showTaskList: props.defaultShowTaskList !== undefined ? 
+        props.defaultShowTaskList : 
+        this.historyNav.isValueInQSList("project_task_open", props.data.id),
       upload: this.getDefaultUploadState(),
       error: "",
       data: props.data,
@@ -97,6 +99,12 @@ class ProjectListItem extends React.Component {
     if (prevState.filterText !== this.state.filterText ||
         prevState.selectedTags.length !== this.state.selectedTags.length){
       if (this.taskList) this.taskList.applyFilter(this.state.filterText, this.state.selectedTags);
+    }
+    
+    // 监听defaultShowTaskList属性变化
+    if (prevProps.defaultShowTaskList !== this.props.defaultShowTaskList && 
+        this.props.defaultShowTaskList !== undefined) {
+      this.setState({ showTaskList: this.props.defaultShowTaskList });
     }
   }
 

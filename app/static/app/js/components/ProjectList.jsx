@@ -15,14 +15,15 @@ class ProjectList extends Paginated {
         history: PropTypes.object.isRequired,
     }
 
-    constructor(props){
+    constructor(props) {
         super(props);
 
         this.state = {
             loading: true,
             refreshing: false,
             error: "",
-            projects: []
+            projects: [],
+            activeProjectId: null // 当前选中的项目ID
         }
 
         this.PROJECTS_PER_PAGE = 10;
@@ -30,17 +31,17 @@ class ProjectList extends Paginated {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.refresh();
     }
 
-    getParametersHash(source){
+    getParametersHash(source) {
         if (!source) return "";
         if (source.indexOf("?") === -1) return "";
 
         let search = source.substr(source.indexOf("?"));
-        let q = Utils.queryParams({search});
-        
+        let q = Utils.queryParams({ search });
+
         // All parameters that can change via history.push without
         // triggering a reload of the project list should go here
         delete q.project_task_open;
@@ -49,60 +50,60 @@ class ProjectList extends Paginated {
         return JSON.stringify(q);
     }
 
-    componentDidUpdate(prevProps){
-        if (this.getParametersHash(prevProps.source) !== this.getParametersHash(this.props.source)){
+    componentDidUpdate(prevProps) {
+        if (this.getParametersHash(prevProps.source) !== this.getParametersHash(this.props.source)) {
             this.refresh();
         }
     }
 
-    refresh(){
-        this.setState({refreshing: true});
+    refresh() {
+        this.setState({ refreshing: true });
 
         // Load projects from API
-        this.serverRequest = 
+        this.serverRequest =
             $.getJSON(this.props.source, json => {
-                if (json.results){
+                if (json.results) {
                     this.setState({
                         projects: json.results,
                         loading: false
                     });
                     this.updatePagination(this.PROJECTS_PER_PAGE, json.count);
-                }else{
-                    this.setState({ 
-                        error: interpolate(_("Invalid JSON response: %(error)s"), {error: JSON.stringify(json)}),
+                } else {
+                    this.setState({
+                        error: interpolate(_("Invalid JSON response: %(error)s"), { error: JSON.stringify(json) }),
                         loading: false
                     });
                 }
             })
-            .fail((jqXHR, textStatus, errorThrown) => {
-                this.setState({ 
-                    error: interpolate(_("Could not load projects list: %(error)s"), {error: textStatus}),
-                    loading: false
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    this.setState({
+                        error: interpolate(_("Could not load projects list: %(error)s"), { error: textStatus }),
+                        loading: false
+                    });
+                })
+                .always(() => {
+                    this.setState({ refreshing: false });
                 });
-            })
-            .always(() => {
-                this.setState({refreshing: false});
-            });
     }
 
-    onPageChanged(pageNum){
+    onPageChanged(pageNum) {
         this.refresh();
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         this.serverRequest.abort();
     }
 
-    handleDelete(projectId){
+    handleDelete(projectId) {
         let projects = this.state.projects.filter(p => p.id !== projectId);
-        this.setState({projects: projects});
+        this.setState({ projects: projects });
         this.handlePageItemsNumChange(-1, () => {
             this.refresh();
         });
     }
 
     handleTaskMoved = (task) => {
-        if (this["projectListItem_" + task.project]){
+        if (this["projectListItem_" + task.project]) {
             this["projectListItem_" + task.project].newTaskAdded();
         }
     }
@@ -111,24 +112,55 @@ class ProjectList extends Paginated {
         this.refresh();
     }
 
+    setActiveProject = (projectId) => {
+        this.setState({ activeProjectId: projectId });
+    }
+
     render() {
-        if (this.state.loading){
+        if (this.state.loading) {
             return (<div className="project-list text-center"><i className="fa fa-circle-notch fa-spin fa-2x fa-fw"></i></div>);
-        }else{
+        } else {
+            const { projects, activeProjectId } = this.state;
+
             return (<div className="project-list">
                 <ErrorMessage bind={[this, 'error']} />
-                <Paginator {...this.state.pagination} {...this.props}>
+
+
+
+                <Paginator {...this.state.pagination} {...this.props} onRefresh={() => this.refresh()}>
+                    {/* 项目Tab栏 */}
+                    {projects.length > 0 && (
+                        <div className="project-tabs">
+                            <ul className="nav nav-tabs">
+                                <li className={activeProjectId === null ? "active" : ""}>
+                                    <a href="javascript:void(0);" onClick={() => this.setActiveProject(null)}>
+                                        {_("全部项目")} ({projects.length})
+                                    </a>
+                                </li>
+                                {projects.map(project => (
+                                    <li key={project.id} className={activeProjectId === project.id ? "active" : ""}>
+                                        <a href="javascript:void(0);" onClick={() => this.setActiveProject(project.id)}>
+                                            {project.name} ({project.tasks ? project.tasks.length : 0})
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     <ul key="1" className={"list-group project-list " + (this.state.refreshing ? "refreshing" : "")}>
-                        {this.state.projects.map(p => (
-                            <ProjectListItem 
-                                ref={(domNode) => { this["projectListItem_" + p.id] = domNode }}
-                                key={p.id} 
-                                data={p} 
-                                onDelete={this.handleDelete}
-                                onTaskMoved={this.handleTaskMoved}
-                                onProjectDuplicated={this.handleProjectDuplicated}
-                                history={this.props.history} /> 
-                        ))}
+                        {projects
+                             .filter(p => activeProjectId === null || p.id === activeProjectId)
+                             .map(p => (
+                                 <ProjectListItem 
+                                     ref={(domNode) => { this["projectListItem_" + p.id] = domNode }}
+                                     key={p.id} 
+                                     data={p} 
+                                     onDelete={this.handleDelete}
+                                     onTaskMoved={this.handleTaskMoved}
+                                     onProjectDuplicated={this.handleProjectDuplicated}
+                                     history={this.props.history}
+                                     defaultShowTaskList={activeProjectId !== null} /> 
+                             ))}
                     </ul>
                 </Paginator>
             </div>);

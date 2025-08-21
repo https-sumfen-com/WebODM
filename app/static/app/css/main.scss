@@ -1,3 +1,6 @@
+// 引入主题样式
+@import 'theme';
+
 html,
 body,
 section.main,
@@ -297,7 +300,6 @@ footer {
 
 .list-group-item {
   background-color: inherit;
-  border-top-width: 0px;
 
   &:first-child {
     border-top-width: 1px;

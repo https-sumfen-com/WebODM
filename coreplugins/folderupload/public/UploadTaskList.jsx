@@ -594,7 +594,7 @@ class UploadTaskList extends React.Component {
             className: `upload-task-list ${expanded ? 'expanded' : 'collapsed'}`,
             style: {
                 position: 'fixed',
-                bottom: '20px',
+                bottom: '60px',
                 right: '20px',
                 zIndex: 1000,
                 backgroundColor: 'white',

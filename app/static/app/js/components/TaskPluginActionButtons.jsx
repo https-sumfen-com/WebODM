@@ -12,7 +12,8 @@ class TaskPluginActionButtons extends React.Component {
 
     static propTypes = {
         task: PropTypes.object.isRequired,
-        disabled: PropTypes.bool
+        disabled: PropTypes.bool,
+        onRefresh: PropTypes.func
     };
 
     constructor(props){
@@ -25,7 +26,8 @@ class TaskPluginActionButtons extends React.Component {
 
     componentDidMount(){
         PluginsAPI.Dashboard.triggerAddTaskActionButton({
-            task: this.props.task
+            task: this.props.task,
+            onRefresh: this.props.onRefresh
         }, (button) => {
             if (!button) return;
 

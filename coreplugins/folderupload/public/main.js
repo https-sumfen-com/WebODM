@@ -120,11 +120,14 @@ PluginsAPI.Dashboard.addTaskActionButton(
                 // 如果没有上传记录，显示按钮
                 return React.createElement(CloudUploadButton, {
                     task: args.task,
-                    disabled: args.disabled
+                    disabled: args.disabled,
+                    onRefresh: this.props.onRefresh
                 });
             }
         }
         
-        return React.createElement(CloudUploadButtonWrapper);
+        return React.createElement(CloudUploadButtonWrapper, {
+            onRefresh: args.onRefresh
+        });
     }
 );

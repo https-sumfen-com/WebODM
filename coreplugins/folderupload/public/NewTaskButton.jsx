@@ -251,6 +251,7 @@ class NewTaskButton extends React.Component {
                 currentTaskType: null,
                 pendingTaskTypes: []
             });
+            this.props.onNewTaskAdded();
         }
     }
 
