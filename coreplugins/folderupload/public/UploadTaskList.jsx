@@ -547,7 +547,6 @@ class UploadTaskList extends React.Component {
         const activeUploadTasks = allTasks.filter(t => t.status === 'uploading');
         const completedTasks = allTasks.filter(t => t.status === 'completed');
         const failedTasks = allTasks.filter(t => t.status === 'error');
-        console.log('completedTasks', allTasks)
         // 获取当前标签页的任务列表
         const getCurrentTasks = () => {
             switch (activeTab) {
