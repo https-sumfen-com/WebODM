@@ -7,7 +7,8 @@ class CloudUploadButton extends React.Component {
         this.state = {
             uploading: false,
             showModal: false,
-            ipConfig: '192.168.3.249', // TODO: 配置IP地址
+            // ipConfig: '192.168.3.249', // TODO: 配置IP地址
+            ipConfig: 'localhost',
             buttonHidden: false // 控制按钮是否隐藏
         };
     }

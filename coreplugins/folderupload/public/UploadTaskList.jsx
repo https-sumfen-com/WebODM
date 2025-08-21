@@ -16,8 +16,8 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            ipConfig: '192.168.3.249', // TODO
-            // ipConfig: 'localhost',
+            // ipConfig: '192.168.3.249', // TODO
+            ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
             reportTasks: [], // 从get_reports接口获取的云端任务列表
