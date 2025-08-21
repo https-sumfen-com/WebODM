@@ -16,8 +16,8 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            // ipConfig: '192.168.3.249', // TODO
-            ipConfig: 'localhost',
+            ipConfig: '192.168.3.249', // TODO
+            // ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
             reportTasks: [], // 从get_reports接口获取的云端任务列表
@@ -517,7 +517,7 @@ class UploadTaskList extends React.Component {
         } else {
             // 使用云端报告任务数据
             reportTasks.forEach(reportTask => {
-                const taskKey = reportTask.odm_task_id;
+                const taskKey = reportTask.job.odm_task_id;
                 if (!addedTaskKeys.has(taskKey)) {
                     addedTaskKeys.add(taskKey);
                     allTasks.push({
@@ -529,7 +529,7 @@ class UploadTaskList extends React.Component {
                         totalCount: 1, // 云端任务没有文件计数概念
                         uploadedCount: reportTask.progress >= 100 ? 1 : 0,
                         error: reportTask.err_msg,
-                        taskId: reportTask.odm_task_id,
+                        taskId: reportTask.job.odm_task_id,
                         projectId: reportTask.odm_project_id || 1,
                         createdTime: reportTask.create_at,
                         updateTime: reportTask.update_at,
@@ -547,7 +547,7 @@ class UploadTaskList extends React.Component {
         const activeUploadTasks = allTasks.filter(t => t.status === 'uploading');
         const completedTasks = allTasks.filter(t => t.status === 'completed');
         const failedTasks = allTasks.filter(t => t.status === 'error');
-        
+        console.log('completedTasks', allTasks)
         // 获取当前标签页的任务列表
         const getCurrentTasks = () => {
             switch (activeTab) {
