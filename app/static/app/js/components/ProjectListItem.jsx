@@ -8,6 +8,7 @@ import UploadProgressBar from './UploadProgressBar';
 import ErrorMessage from './ErrorMessage';
 import EditProjectDialog from './EditProjectDialog';
 import SortPanel from './SortPanel';
+import IframeModal from './IframeModal';
 import Dropzone from '../vendor/dropzone';
 import csrf from '../django/csrf';
 import HistoryNav from '../classes/HistoryNav';
@@ -45,7 +46,10 @@ class ProjectListItem extends React.Component {
       sortKey: "-created_at",
       filterTags: [],
       selectedTags: [],
-      filterText: ""
+      filterText: "",
+      showIframeModal: false,
+      iframeModalTitle: "",
+      iframeModalUrl: ""
     };
 
     this.sortItems = [{
@@ -503,7 +507,23 @@ class ProjectListItem extends React.Component {
   }
 
   viewMap(){
-    location.href = `/map/project/${this.state.data.id}/`;
+    this.openIframeModal(_("View Map"), `/map/project/${this.state.data.id}/`);
+  }
+
+  openIframeModal(title, url) {
+    this.setState({
+      showIframeModal: true,
+      iframeModalTitle: title,
+      iframeModalUrl: url
+    });
+  }
+
+  closeIframeModal = () => {
+    this.setState({
+      showIframeModal: false,
+      iframeModalTitle: "",
+      iframeModalUrl: ""
+    });
   }
 
   handleImportTask = () => {
@@ -641,6 +661,12 @@ class ProjectListItem extends React.Component {
          ref={this.setRef("dropzone")}
          >
         
+        <IframeModal
+          show={this.state.showIframeModal}
+          title={this.state.iframeModalTitle}
+          url={this.state.iframeModalUrl}
+          onHide={this.closeIframeModal}
+        />
         {canEdit ? 
             <EditProjectDialog 
             ref={(domNode) => { this.editProjectDialog = domNode; }}
