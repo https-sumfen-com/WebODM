@@ -16,11 +16,13 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            // ipConfig: '192.168.3.249',
+            // ipConfig: '192.168.3.249', // TODO
             ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
-            activeTab: 'uploading' // 'uploading', 'completed', 'failed'
+            reportTasks: [], // 从get_reports接口获取的云端任务列表
+            activeTab: 'uploading', // 'uploading', 'completed', 'failed', 'cloud'
+            mainTab: 'local' // 'local', 'cloud' - 主要功能切换
         };
 
         // 绑定监听器
@@ -48,7 +50,7 @@ class UploadTaskList extends React.Component {
             // 只有真正的临时任务才会被提交创建
             if (!isAlreadyUploading) {
                 // TODO 临时写死projectid =1
-                task.projectId = 1;
+                // task.projectId = 1;
                 this.startTaskUpload(task);
             }
         });
@@ -66,6 +68,7 @@ class UploadTaskList extends React.Component {
 
         // 立即获取一次任务列表
         this.fetchOdmTasks();
+        this.fetchReportTasks();
     }
 
     componentWillUnmount() {
@@ -87,6 +90,7 @@ class UploadTaskList extends React.Component {
     startRefreshTimer = () => {
         this.refreshInterval = setInterval(() => {
             this.fetchOdmTasks();
+            this.fetchReportTasks(); // 默认同时查询两个接口
         }, 3000); // 每3秒刷新一次
     }
 
@@ -102,6 +106,24 @@ class UploadTaskList extends React.Component {
             this.setState({ odmTasks: response.data || response || [] });
         } catch (error) {
             console.error('获取ODM任务列表失败:', error);
+        }
+    }
+
+    // 获取云端报告任务列表
+    fetchReportTasks = async () => {
+        try {
+            const response = await $.ajax({
+                url: `http://${this.state.ipConfig}:7700/api/odm/get_reports`,
+                type: 'GET',
+                data: {
+                    only_running: false
+                },
+                dataType: 'json'
+            });
+
+            this.setState({ reportTasks: response.data || response || [] });
+        } catch (error) {
+            console.error('获取云端报告任务列表失败:', error);
         }
     }
 
@@ -267,6 +289,24 @@ class UploadTaskList extends React.Component {
         }
     }
 
+    // 映射报告任务状态到本地状态
+    mapReportStatus = (reportStatus) => {
+        switch (reportStatus) {
+            case 'PENDING':
+                return 'pedding';
+            case 'RUNNING':
+                return 'uploading';
+            case 'COMPLETED':
+                return 'completed';
+            case 'FAILED':
+                return 'error';
+            case 'CANCELED':
+                return 'error';
+            default:
+                return 'creating';
+        }
+    }
+
     updateTaskState = (taskId, updates) => {
         this.setState(prevState => {
             const newMap = new Map(prevState.uploadingTasks);
@@ -284,6 +324,10 @@ class UploadTaskList extends React.Component {
 
     setActiveTab = (tab) => {
         this.setState({ activeTab: tab });
+    }
+
+    setMainTab = (tab) => {
+        this.setState({ mainTab: tab, activeTab: 'uploading' });
     }
 
     removeTask = (taskId) => {
@@ -439,36 +483,65 @@ class UploadTaskList extends React.Component {
     }
 
     render() {
-        const { expanded, tasks, uploadingTasks, odmTasks, activeTab } = this.state;
+        const { expanded, tasks, uploadingTasks, odmTasks, reportTasks, activeTab, mainTab } = this.state;
         const uploadingTasksList = Array.from(uploadingTasks.values());
 
-        // 使用ODM任务数据，不再需要临时任务
-        const allTasks = [];
-        const addedTaskKeys = new Set(); // 用于去重，使用odm_task_id作为唯一标识
+        // 根据主功能tab决定使用哪个数据源
+        let allTasks = [];
+        const addedTaskKeys = new Set();
         
-        // 添加ODM任务
-        odmTasks.forEach(odmTask => {
-            const taskKey = odmTask.odm_task_id; // 使用odm_task_id作为唯一标识
-            if (!addedTaskKeys.has(taskKey)) {
-                addedTaskKeys.add(taskKey);
-                allTasks.push({
-                    id: odmTask.run_id || odmTask.id,
-                    name: odmTask.odm_job_name,
-                    type: odmTask.odm_job_type || 'rgb',
-                    status: this.mapOdmStatus(odmTask.state),
-                    progress: odmTask.progress || 0,
-                    totalCount: odmTask.odm_image_count || 0,
-                    uploadedCount: Math.floor((odmTask.progress || 0) / 100 * (odmTask.odm_image_count || 0)),
-                    error: odmTask.err_msg,
-                    taskId: odmTask.odm_task_id,
-                    projectId: odmTask.odm_project_id || 1, // 添加项目ID
-                    folderPath: odmTask.odm_folder_path,
-                    plotName: odmTask.odm_job_name,
-                    samplingDate: odmTask.odm_samplinge_time,
-                    createdTime: odmTask.odm_create_at || odmTask.created_at
-                });
-            }
-        });
+        if (mainTab === 'local') {
+            // 使用ODM任务数据
+            odmTasks.forEach(odmTask => {
+                const taskKey = odmTask.odm_task_id;
+                if (!addedTaskKeys.has(taskKey)) {
+                    addedTaskKeys.add(taskKey);
+                    allTasks.push({
+                        id: odmTask.run_id || odmTask.id,
+                        name: odmTask.odm_job_name,
+                        type: odmTask.odm_job_type || 'rgb',
+                        status: this.mapOdmStatus(odmTask.state),
+                        progress: odmTask.progress || 0,
+                        totalCount: odmTask.odm_image_count || 0,
+                        uploadedCount: Math.floor((odmTask.progress || 0) / 100 * (odmTask.odm_image_count || 0)),
+                        error: odmTask.err_msg,
+                        taskId: odmTask.odm_task_id,
+                        projectId: odmTask.odm_project_id || 1,
+                        folderPath: odmTask.odm_folder_path,
+                        plotName: odmTask.odm_job_name,
+                        samplingDate: odmTask.odm_samplinge_time,
+                        createdTime: odmTask.odm_create_at || odmTask.created_at
+                    });
+                }
+            });
+        } else {
+            // 使用云端报告任务数据
+            reportTasks.forEach(reportTask => {
+                const taskKey = reportTask.odm_task_id;
+                if (!addedTaskKeys.has(taskKey)) {
+                    addedTaskKeys.add(taskKey);
+                    allTasks.push({
+                        id: reportTask.id,
+                        name: reportTask.odm_job_name || reportTask.odm_task_id, // 使用odm_task_id作为任务名
+                        type: reportTask.algo_name || 'ndvi',
+                        status: this.mapReportStatus(reportTask.state),
+                        progress: reportTask.progress || 0,
+                        totalCount: 1, // 云端任务没有文件计数概念
+                        uploadedCount: reportTask.progress >= 100 ? 1 : 0,
+                        error: reportTask.err_msg,
+                        taskId: reportTask.odm_task_id,
+                        projectId: reportTask.odm_project_id || 1,
+                        createdTime: reportTask.create_at,
+                        updateTime: reportTask.update_at,
+                        areaMu: reportTask.area_mu,
+                        minValue: reportTask.min_value,
+                        maxValue: reportTask.max_value,
+                        mean: reportTask.mean,
+                        stddev: reportTask.stddev
+                    });
+                }
+            });
+        }
 
         // 按状态分类任务
         const activeUploadTasks = allTasks.filter(t => t.status === 'uploading');
@@ -487,6 +560,35 @@ class UploadTaskList extends React.Component {
         
         const currentTasks = getCurrentTasks();
         const totalTasks = activeUploadTasks.length + completedTasks.length + failedTasks.length;
+        
+        // 计算本地和云端uploading状态的任务数量
+        const localUploadingTasks = [];
+        const cloudUploadingTasks = [];
+        const localTaskKeys = new Set();
+        const cloudTaskKeys = new Set();
+        
+        // 统计本地uploading任务
+        odmTasks.forEach(odmTask => {
+            const taskKey = odmTask.odm_task_id;
+            const status = this.mapOdmStatus(odmTask.state);
+            if (!localTaskKeys.has(taskKey) && status === 'uploading') {
+                localTaskKeys.add(taskKey);
+                localUploadingTasks.push(odmTask);
+            }
+        });
+        
+        // 统计云端uploading任务
+        reportTasks.forEach(reportTask => {
+            const taskKey = reportTask.odm_task_id;
+            const status = this.mapReportStatus(reportTask.state);
+            if (!cloudTaskKeys.has(taskKey) && status === 'uploading') {
+                cloudTaskKeys.add(taskKey);
+                cloudUploadingTasks.push(reportTask);
+            }
+        });
+        
+        const localTaskCount = localUploadingTasks.length;
+        const cloudTaskCount = cloudUploadingTasks.length;
 
         return React.createElement('div', {
             className: `upload-task-list ${expanded ? 'expanded' : 'collapsed'}`,
@@ -523,7 +625,7 @@ class UploadTaskList extends React.Component {
                 React.createElement('div', {
                     key: 'title',
                     style: { fontWeight: 'bold', fontSize: '14px' }
-                }, `上传任务 (${totalTasks})`),
+                }, expanded ? `${mainTab === 'local' ? '上传任务' : '云端任务'} (${totalTasks})` : `本地(${localTaskCount})   云端(${cloudTaskCount})`),
                 React.createElement('i', {
                     key: 'toggle-icon',
                     className: `fa fa-chevron-${expanded ? 'down' : 'up'}`,
@@ -531,63 +633,125 @@ class UploadTaskList extends React.Component {
                 })
             ]),
 
-            // Tab导航栏
+            // 主功能切换栏
+            expanded ? React.createElement('div', {
+                key: 'main-tab-nav',
+                style: {
+                    display: 'flex',
+                    borderBottom: '1px solid #ddd',
+                    backgroundColor: '#f8f9fa'
+                }
+            }, [
+                React.createElement('button', {
+                    key: 'local-tab',
+                    type: 'button',
+                    style: {
+                        flex: 1,
+                        padding: '12px 16px',
+                        border: 'none',
+                        backgroundColor: mainTab === 'local' ? '#007bff' : 'transparent',
+                        color: mainTab === 'local' ? 'white' : '#666',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        borderRadius: '0',
+                        fontWeight: mainTab === 'local' ? 'bold' : 'normal'
+                    },
+                    onClick: () => this.setMainTab('local')
+                }, '新建任务上传'),
+                React.createElement('button', {
+                    key: 'cloud-tab',
+                    type: 'button',
+                    style: {
+                        flex: 1,
+                        padding: '12px 16px',
+                        border: 'none',
+                        backgroundColor: mainTab === 'cloud' ? '#007bff' : 'transparent',
+                        color: mainTab === 'cloud' ? 'white' : '#666',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        borderRadius: '0',
+                        fontWeight: mainTab === 'cloud' ? 'bold' : 'normal'
+                    },
+                    onClick: () => this.setMainTab('cloud')
+                }, '上传到云端')
+            ]) : null,
+
+            // Tab导航栏（状态切换）
             expanded ? React.createElement('div', {
                 key: 'tab-nav',
                 style: {
                     display: 'flex',
-                    borderBottom: '1px solid #eee',
-                    backgroundColor: '#fafafa'
+                    justifyContent: 'center',
+                    padding: '12px 16px',
+                    backgroundColor: 'transparent'
                 }
             }, [
-                React.createElement('button', {
-                    key: 'uploading-tab',
-                    type: 'button',
+                React.createElement('div', {
+                    key: 'tab-container',
                     style: {
-                        flex: 1,
-                        padding: '10px 12px',
-                        border: 'none',
-                        backgroundColor: activeTab === 'uploading' ? '#007bff' : 'transparent',
-                        color: activeTab === 'uploading' ? 'white' : '#666',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        borderRadius: '0',
-                        fontWeight: activeTab === 'uploading' ? 'bold' : 'normal'
-                    },
-                    onClick: () => this.setActiveTab('uploading')
-                }, `上传中 (${activeUploadTasks.length})`),
-                React.createElement('button', {
-                    key: 'completed-tab',
-                    type: 'button',
-                    style: {
-                        flex: 1,
-                        padding: '10px 12px',
-                        border: 'none',
-                        backgroundColor: activeTab === 'completed' ? '#28a745' : 'transparent',
-                        color: activeTab === 'completed' ? 'white' : '#666',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        borderRadius: '0',
-                        fontWeight: activeTab === 'completed' ? 'bold' : 'normal'
-                    },
-                    onClick: () => this.setActiveTab('completed')
-                }, `已完成 (${completedTasks.length})`),
-                React.createElement('button', {
-                    key: 'failed-tab',
-                    type: 'button',
-                    style: {
-                        flex: 1,
-                        padding: '10px 12px',
-                        border: 'none',
-                        backgroundColor: activeTab === 'failed' ? '#dc3545' : 'transparent',
-                        color: activeTab === 'failed' ? 'white' : '#666',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        borderRadius: '0',
-                        fontWeight: activeTab === 'failed' ? 'bold' : 'normal'
-                    },
-                    onClick: () => this.setActiveTab('failed')
-                }, `上传失败 (${failedTasks.length})`)
+                        display: 'flex',
+                        backgroundColor: '#f1f3f4',
+                        borderRadius: '20px',
+                        padding: '4px',
+                        width: 'auto',
+                        minWidth: '280px'
+                    }
+                }, [
+                    React.createElement('button', {
+                        key: 'uploading-tab',
+                        type: 'button',
+                        style: {
+                            flex: 1,
+                            padding: '8px 12px',
+                            border: 'none',
+                            backgroundColor: activeTab === 'uploading' ? '#007bff' : 'transparent',
+                            color: activeTab === 'uploading' ? 'white' : '#666',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            borderRadius: '16px',
+                            fontWeight: activeTab === 'uploading' ? 'bold' : 'normal',
+                            transition: 'all 0.2s ease',
+                            margin: '0 2px'
+                        },
+                        onClick: () => this.setActiveTab('uploading')
+                    }, `上传中 (${activeUploadTasks.length})`),
+                    React.createElement('button', {
+                        key: 'completed-tab',
+                        type: 'button',
+                        style: {
+                            flex: 1,
+                            padding: '8px 12px',
+                            border: 'none',
+                            backgroundColor: activeTab === 'completed' ? '#28a745' : 'transparent',
+                            color: activeTab === 'completed' ? 'white' : '#666',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            borderRadius: '16px',
+                            fontWeight: activeTab === 'completed' ? 'bold' : 'normal',
+                            transition: 'all 0.2s ease',
+                            margin: '0 2px'
+                        },
+                        onClick: () => this.setActiveTab('completed')
+                    }, `已完成 (${completedTasks.length})`),
+                    React.createElement('button', {
+                        key: 'failed-tab',
+                        type: 'button',
+                        style: {
+                            flex: 1,
+                            padding: '8px 12px',
+                            border: 'none',
+                            backgroundColor: activeTab === 'failed' ? '#dc3545' : 'transparent',
+                            color: activeTab === 'failed' ? 'white' : '#666',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            borderRadius: '16px',
+                            fontWeight: activeTab === 'failed' ? 'bold' : 'normal',
+                            transition: 'all 0.2s ease',
+                            margin: '0 2px'
+                        },
+                        onClick: () => this.setActiveTab('failed')
+                    }, `上传失败 (${failedTasks.length})`)
+                ])
             ]) : null,
 
             // 任务列表内容区域
@@ -637,8 +801,11 @@ class UploadTaskList extends React.Component {
                                 React.createElement('div', {
                                     key: 'details',
                                     style: { fontSize: '11px', color: '#666' }
-                                }, [
+                                }, mainTab === 'local' ? [
                                     `${task.type === 'rgb' ? 'RGB' : '多光谱'} • ${task.totalCount} 文件`,
+                                    task.createdTime ? ` • ${this.formatDateTime(task.createdTime)}` : ''
+                                ].join('') : [
+                                    `${task.type.toUpperCase()} • 面积: ${task.areaMu ? task.areaMu.toFixed(2) + '亩' : '未知'}`,
                                     task.createdTime ? ` • ${this.formatDateTime(task.createdTime)}` : ''
                                 ].join(''))
                             ]),
@@ -716,8 +883,8 @@ class UploadTaskList extends React.Component {
                             }
                         }, task.error) : null,
 
-                        // 操作按钮
-                        (activeTab === 'uploading' || activeTab === 'completed' || activeTab === 'failed') ? React.createElement('div', {
+                        // 操作按钮（仅本地任务显示）
+                        (mainTab === 'local' && (activeTab === 'uploading' || activeTab === 'completed' || activeTab === 'failed')) ? React.createElement('div', {
                             key: 'actions',
                             style: { textAlign: 'right', marginTop: '8px' }
                         }, [
@@ -737,6 +904,25 @@ class UploadTaskList extends React.Component {
                                 onClick: () => this.removeOdmTask(task),
                                 style: { fontSize: '10px', padding: '4px 8px' }
                             }, '删除') : null
+                        ]) : null,
+
+                        // 云端任务额外信息
+                        (mainTab === 'cloud' && activeTab === 'completed' && task.status === 'completed') ? React.createElement('div', {
+                            key: 'cloud-info',
+                            style: {
+                                marginTop: '8px',
+                                padding: '8px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                color: '#666'
+                            }
+                        }, [
+                            React.createElement('div', { key: 'stats' }, [
+                                `均值: ${task.mean ? task.mean.toFixed(3) : 'N/A'} | `,
+                                `标准差: ${task.stddev ? task.stddev.toFixed(3) : 'N/A'} | `,
+                                `范围: ${task.minValue ? task.minValue.toFixed(2) : 'N/A'} ~ ${task.maxValue ? task.maxValue.toFixed(2) : 'N/A'}`
+                            ].join(''))
                         ]) : null
                     ])
                 )) : React.createElement('div', {

@@ -25,10 +25,10 @@ class NewTaskButton extends React.Component {
             samplingDate: '', // 采样日期
             pendingTaskTypes: [] // 待创建的任务类型队列
         };
-        
+
         // 绑定事件监听器
         this.dealFile = this.dealFile.bind(this);
-        
+
         // 生成唯一实例ID
         this.instanceId = `newtaskbutton_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
@@ -75,7 +75,7 @@ class NewTaskButton extends React.Component {
     componentWillUnmount() {
         // 移除事件监听器
         window.removeEventListener("getFileData", this.dealFile);
-        
+
         // 如果当前实例是活跃实例，清除标记
         if (window.activeTaskPanelInstance === this.instanceId) {
             window.activeTaskPanelInstance = null;
@@ -91,7 +91,7 @@ class NewTaskButton extends React.Component {
             // });
 
             console.log('触发文件选择器');
-            
+
             // 通过CustomEvent打开文件选择器
             window.dispatchEvent(
                 new CustomEvent("openFile", {
@@ -136,7 +136,7 @@ class NewTaskButton extends React.Component {
                     console.log('文件夹名称:', this.state.folderName);
                     console.log('全路径:', this.state.folderFullPath);
                     console.log('采样日期:', this.state.samplingDate);
-                    
+
                     // 准备任务创建队列
                     this.prepareTaskCreation();
                 });
@@ -476,37 +476,168 @@ class NewTaskButton extends React.Component {
                     React.createElement('h3', {
                         key: 'title',
                         style: { marginBottom: '20px', textAlign: 'center' }
-                    }, '选择数据类型'),
+                    }, '目标拼接类型'),
                     React.createElement('div', {
                         key: 'options',
-                        style: { marginBottom: '20px' }
+                        style: { marginBottom: '20px', display: 'flex', gap: '15px' }
                     }, [
-                        React.createElement('label', {
-                            key: 'rgb-label',
-                            style: { display: 'block', marginBottom: '10px', cursor: 'pointer' }
+                        React.createElement('div', {
+                            key: 'rgb-card',
+                            onClick: () => this.handleTypeChange('rgb'),
+                            style: {
+                                flex: 1,
+                                padding: '15px',
+                                border: selectedTypes.includes('rgb') ? '2px solid #007bff' : '2px solid #e0e0e0',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                backgroundColor: selectedTypes.includes('rgb') ? '#f0f8ff' : '#ffffff',
+                                transition: 'all 0.3s ease',
+                                boxShadow: selectedTypes.includes('rgb') ? '0 2px 8px rgba(0,123,255,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
+                                position: 'relative'
+                            }
                         }, [
-                            React.createElement('input', {
-                                key: 'rgb-checkbox',
-                                type: 'checkbox',
-                                checked: selectedTypes.includes('rgb'),
-                                onChange: () => this.handleTypeChange('rgb'),
-                                style: { marginRight: '8px' }
-                            }),
-                            'RGB数据 (JPG格式)'
+                            selectedTypes.includes('rgb') ? React.createElement('div', {
+                                key: 'rgb-check',
+                                style: {
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    width: '20px',
+                                    height: '20px',
+                                    backgroundColor: '#007bff',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }
+                            }, React.createElement('i', {
+                                className: 'fa fa-check',
+                                style: {
+                                    color: 'white',
+                                    fontSize: '12px'
+                                }
+                            })) : null,
+                            React.createElement('div', {
+                                key: 'rgb-icon',
+                                style: {
+                                    fontSize: '24px',
+                                    marginBottom: '8px',
+                                    color: selectedTypes.includes('rgb') ? '#007bff' : '#666'
+                                }
+                            }, '📷'),
+                            React.createElement('div', {
+                                key: 'rgb-title',
+                                style: {
+                                    fontWeight: 'bold',
+                                    marginBottom: '4px',
+                                    color: selectedTypes.includes('rgb') ? '#007bff' : '#333'
+                                }
+                            }, 'RGB数据'),
+                            React.createElement('div', {
+                                key: 'rgb-desc',
+                                style: {
+                                    fontSize: '12px',
+                                    color: '#666'
+                                }
+                            }, 'JPG格式')
                         ]),
-                        React.createElement('label', {
-                            key: 'multispectral-label',
-                            style: { display: 'block', cursor: 'pointer' }
+                        React.createElement('div', {
+                            key: 'multispectral-card',
+                            onClick: () => this.handleTypeChange('multispectral'),
+                            style: {
+                                flex: 1,
+                                padding: '15px',
+                                border: selectedTypes.includes('multispectral') ? '2px solid #007bff' : '2px solid #e0e0e0',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                backgroundColor: selectedTypes.includes('multispectral') ? '#f0f8ff' : '#ffffff',
+                                transition: 'all 0.3s ease',
+                                boxShadow: selectedTypes.includes('multispectral') ? '0 2px 8px rgba(0,123,255,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
+                                position: 'relative'
+                            }
                         }, [
-                            React.createElement('input', {
-                                key: 'multispectral-checkbox',
-                                type: 'checkbox',
-                                checked: selectedTypes.includes('multispectral'),
-                                onChange: () => this.handleTypeChange('multispectral'),
-                                style: { marginRight: '8px' }
-                            }),
-                            '多光谱数据 (TIF格式)'
+                            selectedTypes.includes('multispectral') ? React.createElement('div', {
+                                key: 'multispectral-check',
+                                style: {
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    width: '20px',
+                                    height: '20px',
+                                    backgroundColor: '#007bff',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }
+                            }, React.createElement('i', {
+                                className: 'fa fa-check',
+                                style: {
+                                    color: 'white',
+                                    fontSize: '12px'
+                                }
+                            })) : null,
+                            React.createElement('div', {
+                                key: 'multispectral-icon',
+                                style: {
+                                    fontSize: '24px',
+                                    marginBottom: '8px',
+                                    color: selectedTypes.includes('multispectral') ? '#007bff' : '#666'
+                                }
+                            }, '🌈'),
+                            React.createElement('div', {
+                                key: 'multispectral-title',
+                                style: {
+                                    fontWeight: 'bold',
+                                    marginBottom: '4px',
+                                    color: selectedTypes.includes('multispectral') ? '#007bff' : '#333'
+                                }
+                            }, '多光谱数据'),
+                            React.createElement('div', {
+                                key: 'multispectral-desc',
+                                style: {
+                                    fontSize: '12px',
+                                    color: '#666'
+                                }
+                            }, 'TIF格式')
                         ])
+                    ]),
+                    React.createElement('div', {
+                        key: 'tips',
+                        style: {
+                            marginBottom: '20px',
+                            padding: '15px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            lineHeight: '1.6',
+                            color: '#666',
+                            width: 800
+
+                        }
+                    }, [
+                        React.createElement('div', {
+                            key: 'tip-title',
+                            style: {
+                                fontWeight: 'bold',
+                                marginBottom: '8px',
+                                color: '#333',
+                            }
+                        }, '使用说明：'),
+                        React.createElement('div', {
+                            key: 'tip1',
+                            style: { marginBottom: '6px' }
+                        }, '1. 目标类型支持多选，如果多选程序将会自动创建RGB+多光谱两个拼接任务；'),
+                        React.createElement('div', {
+                            key: 'tip2',
+                            style: { marginBottom: '6px' }
+                        }, '2. 选中文件夹后程序将自动把选中文件夹内(含子文件夹)JPG格式图片、TIF格式图片分别归类到RGB拼接任务、多光谱拼接任务；'),
+                        React.createElement('div', {
+                            key: 'tip3'
+                        }, '3. 任务名称跟采样日期通过识别选中文件夹的名称自动生成，文件夹命名规范如：DJI_202506110941_001_大疆智慧农业平台_地块名xxxx，202506110941将转换为采样日期：2025-06-11, 地块名xxxx将自动拼接后缀_RGB/多光谱作为任务名；')
+
                     ]),
                     React.createElement('div', {
                         key: 'buttons',
@@ -517,7 +648,7 @@ class NewTaskButton extends React.Component {
                             type: 'button',
                             className: 'btn btn-default',
                             onClick: this.handleTypeSelectionCancel,
-                            style: { marginRight: '10px' }
+                            style: { marginRight: 10 }
                         }, '取消'),
                         React.createElement('button', {
                             key: 'confirm',

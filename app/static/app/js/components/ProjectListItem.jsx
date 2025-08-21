@@ -657,7 +657,7 @@ class ProjectListItem extends React.Component {
           <ErrorMessage bind={[this, 'error']} />
           <div className="btn-group project-buttons">
             {this.hasPermission("add") ? 
-              <div className={"asset-download-buttons btn-group " + (this.state.upload.uploading ? "hide" : "")}>
+              <div className={"btn-group " + (this.state.upload.uploading ? "hide" : "")}>
                 {/* <button type="button" 
                       className="btn btn-primary btn-sm"
                       onClick={this.handleUpload}

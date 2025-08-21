@@ -146,7 +146,8 @@ def add_default_presets():
                                                               {'name': 'orthophoto-resolution', 'value': "2.0"}]})
         Preset.objects.update_or_create(name='Default', system=True,
                                         defaults={'options': [{'name': 'auto-boundary', 'value': True},
-                                                              {'name': 'dsm', 'value': True}]})
+                                                              {'name': 'dsm', 'value': True},
+                                                              {'name': 'fast-orthophoto', 'value': True}]})
 
     except MultipleObjectsReturned:
         # Mostly to handle a legacy code problem where

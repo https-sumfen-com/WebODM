@@ -7,7 +7,7 @@ class Plugin(PluginBase):
         return ['main.js', 'load_task_list.js']
     
     def build_jsx_components(self):
-        return ['NewTaskButton.jsx', 'UploadTaskList.jsx']
+        return ['NewTaskButton.jsx', 'UploadTaskList.jsx', 'CloudUploadButton.jsx']
     
     def app_mount_points(self):
         return [
