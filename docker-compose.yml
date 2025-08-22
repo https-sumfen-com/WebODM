@@ -20,6 +20,7 @@ services:
     entrypoint: /bin/bash -c "service cron start && chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh\""
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media:z
+      - ./app/boot.py:/webodm/app/boot.py:z,rw
       - ./app/static:/webodm/app/static:z,rw
       - ./app/templates:/webodm/app/templates:z,rw
       - ./app/middleware:/webodm/app/middleware:z,rw
@@ -28,6 +29,7 @@ services:
       - ./coreplugins:/webodm/coreplugins:z
       - ./webodm:/webodm/webodm:z
       - ./LOCALES:/webodm/LOCALES:z
+      - ./locale/zh_Hans:/webodm/locale/zh_Hans:z
     ports:
       - "${WO_PORT}:8000"
     depends_on:
@@ -58,6 +60,7 @@ services:
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media:z
+      - ./app/boot.py:/webodm/app/boot.py:z,rw
       - ./app/static:/webodm/app/static:z,rw
       - ./app/templates:/webodm/app/templates:z,rw
       - ./app/middleware:/webodm/app/middleware:z,rw
@@ -66,6 +69,7 @@ services:
       - ./coreplugins:/webodm/coreplugins:z
       - ./webodm:/webodm/webodm:z
       - ./LOCALES:/webodm/LOCALES:z
+      - ./locale/zh_Hans:/webodm/locale/zh_Hans:z
     depends_on:
       - db
       - broker

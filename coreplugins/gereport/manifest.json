@@ -1,0 +1,17 @@
+{
+	"name": "Task generate report",
+	"webodmMinVersion": "0.6.2",
+	"description": "Generate report when a task has comleted",
+	"version": "0.1.0",
+	"author": "feidu",
+	"email": "",
+	"repository": "https://github.com/OpenDroneMap/WebODM",
+	"tags": [
+		"notification",
+		"report",
+		"requests"
+	],
+	"homepage": "https://github.com/OpenDroneMap/WebODM",
+	"experimental": false,
+	"deprecated": false
+}
