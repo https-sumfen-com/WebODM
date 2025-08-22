@@ -1,0 +1,25 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h2>{% trans 'Generate Report' %}</h2>
+<p>generate report when a task has comleted</p>
+
+<hr>
+<form action="/plugins/gereport/" method="post" class="mt-5">
+  {% csrf_token %}
+  <div class="form-group mb-3">
+    <label for="callback_url">Callback URL</label>
+    <input name="callback_url" value="{{ form.callback_url.value }}" type="text" class="form-control" />
+    {{form.callback_url.errors}}
+  </div>
+  <hr>
+  <p>
+    {{ form.non_field_errors }}
+  </p>
+  <div>
+    <button name="apply_configuration" value="yes" class="btn btn-primary">Apply Settings</button>
+    <button name="test_configuration" value="yes" class="btn btn-info">Send Request</button>
+  </div>
+</form>
+{% endblock %}
