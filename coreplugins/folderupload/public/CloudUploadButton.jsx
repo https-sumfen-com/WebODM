@@ -1,5 +1,6 @@
 import React from 'React';
 import $ from 'jquery';
+import CloudDownloadButton from './CloudDownloadButton';
 
 class CloudUploadButton extends React.Component {
     constructor(props) {
@@ -9,7 +10,9 @@ class CloudUploadButton extends React.Component {
             showModal: false,
             // ipConfig: '192.168.3.249', // TODO: 配置IP地址
             ipConfig: 'localhost',
-            buttonHidden: false // 控制按钮是否隐藏
+            buttonHidden: false, // 控制按钮是否隐藏
+            progress: null,
+            error: ""
         };
     }
 
@@ -52,6 +55,11 @@ class CloudUploadButton extends React.Component {
     componentWillUnmount() {
         // 清理事件监听器
         window.removeEventListener('message', this.handleMessage);
+        
+        // 清理下载请求
+        if (this.exportReq) {
+            this.exportReq.abort();
+        }
     }
 
     handleUpload = () => {
@@ -120,7 +128,7 @@ class CloudUploadButton extends React.Component {
             const taskId = this.props.task.id;
             // TODO 测试写死
             // const projectId = 1;
-            // const taskId = '137ad9bd-9e37-4906-9295-eaa38103ec3c';
+            // const taskId = '29df49de-697f-458d-84f8-b99616850231';
 
             // 通过接口获取reportData
             const reportData = await this.fetchReportDetail(projectId, taskId);
@@ -148,7 +156,7 @@ class CloudUploadButton extends React.Component {
                 const taskId = this.props.task.id;
                 // TODO 测试写死
                 // const projectId = 1;
-                // const taskId = '137ad9bd-9e37-4906-9295-eaa38103ec3c';
+                // const taskId = '29df49de-697f-458d-84f8-b99616850231';
                 const reportNo = data.data.report_no;
 
                 console.log('开始上传报告到云端:', reportNo);
@@ -197,7 +205,7 @@ class CloudUploadButton extends React.Component {
     };
 
     render() {
-        const { disabled } = this.props;
+        const { disabled, record, task } = this.props;
         const { uploading, showModal, buttonHidden } = this.state;
 
         // 如果按钮被隐藏，返回null
@@ -205,19 +213,36 @@ class CloudUploadButton extends React.Component {
             return null;
         }
 
+        // 按钮显示条件
+        const showUploadButton = record && record.state !== 'RUNNING' && record.state !== 'COMPLETED';
+        const showDownloadButton = record && record.id;
+        
         return (
             <>
-                <button
-                    type="button"
-                    className="btn btn-sm btn-info"
-                    onClick={this.handleUpload}
-                    disabled={disabled || uploading}
-                >
-                    <i className="fa fa-cloud-upload"></i>
-                    <span className="hidden-xs">
-                        {uploading ? ' 上传中...' : ' 上传到云端'}
-                    </span>
-                </button>
+                {/* 上传按钮 - 当record存在且状态不是RUNNING或COMPLETED时显示 */}
+                {showUploadButton && (
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-info"
+                        onClick={this.handleUpload}
+                        disabled={disabled || uploading}
+                        style={{ marginRight: showDownloadButton ? '5px' : '0' }}
+                    >
+                        <i className="fa fa-cloud-upload"></i>
+                        <span className="hidden-xs">
+                            {uploading ? ' 上传中...' : ' 上传到云端'}
+                        </span>
+                    </button>
+                )}
+
+                {/* 下载按钮组件 - 当record存在且有id时显示 */}
+                {showDownloadButton && (
+                    <CloudDownloadButton 
+                        task={task}
+                        record={record}
+                        disabled={disabled}
+                    />
+                )}
 
                 {/* 上传弹窗 */}
                 {showModal && (

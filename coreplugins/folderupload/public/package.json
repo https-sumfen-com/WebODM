@@ -4,6 +4,8 @@
   "description": "New task button with folder upload functionality",
   "main": "main.js",
   "dependencies": {
-    "react": "^16.0.0"
+    "react": "^16.0.0",
+    "canvas-select": "^2.23.2",
+    "tiff.js": "^1.0.0"
   }
 }

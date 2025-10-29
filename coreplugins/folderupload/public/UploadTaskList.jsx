@@ -16,8 +16,8 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            // ipConfig: '192.168.3.249', // TODO
-            ipConfig: 'localhost',
+            ipConfig: '192.168.3.249', // TODO
+            // ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
             reportTasks: [], // 从get_reports接口获取的云端任务列表
@@ -91,7 +91,7 @@ class UploadTaskList extends React.Component {
         this.refreshInterval = setInterval(() => {
             this.fetchOdmTasks();
             this.fetchReportTasks(); // 默认同时查询两个接口
-        }, 3000); // 每3秒刷新一次
+        }, 10000); // 每3秒刷新一次
     }
 
     // 获取ODM任务列表
@@ -138,6 +138,7 @@ class UploadTaskList extends React.Component {
                 odm_src_folder: task.folderPath,
                 odm_samplinge_time: task.samplingDate ? new Date(task.samplingDate).toISOString() : new Date().toISOString(),
                 odm_host: `http://${this.state.ipConfig}:8000` || window.location.origin,
+                radiometric: task.radiometric || null,
                 odm_create_at: new Date().toISOString()
             };
 
