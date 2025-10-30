@@ -16,8 +16,8 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            ipConfig: '192.168.3.249', // TODO
-            // ipConfig: 'localhost',
+            // ipConfig: '192.168.3.249', // TODO
+            ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
             reportTasks: [], // 从get_reports接口获取的云端任务列表
@@ -897,7 +897,7 @@ class UploadTaskList extends React.Component {
                                 style: { fontSize: '10px', padding: '4px 8px', marginRight: '5px' }
                             }, '取消') : null,
                             // 删除按钮（已完成和失败显示）
-                            (activeTab === 'completed' || activeTab === 'failed') ? React.createElement('button', {
+                            (activeTab === 'failed') ? React.createElement('button', {
                                 key: 'remove',
                                 type: 'button',
                                 className: 'btn btn-xs btn-danger',
