@@ -897,7 +897,7 @@ class UploadTaskList extends React.Component {
                                 style: { fontSize: '10px', padding: '4px 8px', marginRight: '5px' }
                             }, '取消') : null,
                             // 删除按钮（已完成和失败显示）
-                            (activeTab === 'completed' || activeTab === 'failed') ? React.createElement('button', {
+                            (activeTab === 'failed') ? React.createElement('button', {
                                 key: 'remove',
                                 type: 'button',
                                 className: 'btn btn-xs btn-danger',
