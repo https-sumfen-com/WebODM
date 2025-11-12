@@ -53,7 +53,7 @@ class ImportTaskPanel extends React.Component {
           clickable: this.uploadButton,
           timeout: 2147483647,
           chunking: true,
-          chunkSize: 16000000, // 16MB,
+          chunkSize: 4000000, // 4MB,
           retryChunks: true,
           retryChunksLimit: 20,
           headers: {

@@ -31,7 +31,7 @@ from app import models, pending_actions
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
-from .common import get_and_check_project, get_asset_download_filename
+from .common import get_and_check_project, get_asset_download_filename, check_project_perms
 from .tags import TagsField
 from app.security import path_traversal_check
 from django.utils.translation import gettext_lazy as _
@@ -102,7 +102,7 @@ class TaskViewSet(viewsets.ViewSet):
     A task represents a set of images and other input to be sent to a processing node.
     Once a processing node completes processing, results are stored in the task.
     """
-    queryset = models.Task.objects.all()
+    queryset = models.Task.objects.all().select_related('project')
     
     parser_classes = (parsers.MultiPartParser, parsers.JSONParser, parsers.FormParser, )
     ordering_fields = '__all__'
@@ -122,9 +122,9 @@ class TaskViewSet(viewsets.ViewSet):
         return [permission() for permission in permission_classes]
 
     def set_pending_action(self, pending_action, request, pk=None, project_pk=None, perms=('change_project', )):
-        get_and_check_project(request, project_pk, perms)
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project, perms)
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
@@ -167,9 +167,9 @@ class TaskViewSet(viewsets.ViewSet):
 
         An optional "f" query param can be either: "text" (default), "json" or "raw"
         """
-        get_and_check_project(request, project_pk)
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project)
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
@@ -205,7 +205,7 @@ class TaskViewSet(viewsets.ViewSet):
             })
 
     def list(self, request, project_pk=None):
-        get_and_check_project(request, project_pk)
+        get_and_check_project(request, project_pk, defer=True)
         query = Q(project=project_pk)
 
         status = request.query_params.get('status')
@@ -245,7 +245,7 @@ class TaskViewSet(viewsets.ViewSet):
             raise exceptions.NotFound()
 
         if not (task.public or task.project.public):
-            get_and_check_project(request, task.project.id)
+            check_project_perms(request, task.project)
 
         serializer = TaskSerializer(task)
         return Response(serializer.data)
@@ -255,9 +255,14 @@ class TaskViewSet(viewsets.ViewSet):
         """
         Commit a task after all images have been uploaded
         """
-        get_and_check_project(request, project_pk, ('change_project', ))
+        # import time
+        # time.sleep(10)
+        # return Response('', status=524)
+        # raise exceptions.ValidationError(detail=_("Random upload failure for testing"))
+
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project, ('change_project', ))
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
@@ -279,9 +284,9 @@ class TaskViewSet(viewsets.ViewSet):
         """
         Add images to a task
         """
-        get_and_check_project(request, project_pk, ('change_project', ))
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project, ('change_project', ))
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
@@ -289,12 +294,42 @@ class TaskViewSet(viewsets.ViewSet):
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
-        uploaded = task.handle_images_upload(files)
-        task.images_count = len(task.scan_images())
-        # Update other parameters such as processing node, task name, etc.
-        serializer = TaskSerializer(task, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        chunk_info = None
+        chunk_index = request.data.get('dzchunkindex')
+        uuid = request.data.get('dzuuid') 
+        total_chunk_count = request.data.get('dztotalchunkcount', None)
+        if len(files) == 1 and chunk_index is not None and uuid is not None and total_chunk_count is not None:
+            byte_offset = request.data.get('dzchunkbyteoffset', 0)
+            try:
+                chunk_index = int(chunk_index)
+                byte_offset = int(byte_offset)
+                total_chunk_count = int(total_chunk_count)
+            except ValueError:
+                raise exceptions.ValidationError(detail="chunkIndex is not an int")
+            
+            chunk_info = {
+                'uuid': re.sub('[^0-9a-zA-Z-]+', "", uuid),
+                'chunk_index': chunk_index,
+                'byte_offset': byte_offset,
+                'total_chunk_count': total_chunk_count,
+                'tmp_upload_file': os.path.join(settings.FILE_UPLOAD_TEMP_DIR, f"{uuid}.upload")
+            }
+
+        # 50% of the time, raise an exception
+        # import random
+        # if random.random() < 0.5:
+        #     import time
+        #     time.sleep(10)
+        #     return Response('', status=524)
+        #     raise exceptions.ValidationError(detail=_("Random upload failure for testing"))
+
+        uploaded = task.handle_images_upload(files, chunk_info)
+        if len(uploaded) > 0:
+            task.images_count = len(task.scan_images())
+            # Update other parameters such as processing node, task name, etc.
+            serializer = TaskSerializer(task, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         
         return Response({'success': True, 'uploaded': uploaded}, status=status.HTTP_200_OK)
 
@@ -303,9 +338,9 @@ class TaskViewSet(viewsets.ViewSet):
         """
         Duplicate a task
         """
-        get_and_check_project(request, project_pk, ('change_project', ))
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project, ('change_project', ))
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
@@ -324,8 +359,8 @@ class TaskViewSet(viewsets.ViewSet):
         align_task = None
         if align_to is not None and align_to != "auto" and align_to != "":
             try:
-                align_task = models.Task.objects.get(pk=align_to)
-                get_and_check_project(request, align_task.project.id, ('view_project', ))
+                align_task = models.Task.objects.select_related('project').get(pk=align_to)
+                check_project_perms(request, align_task.project, ('view_project', ))
             except ObjectDoesNotExist:
                 raise exceptions.ValidationError(detail=_("Cannot create task, alignment task is not valid"))
         
@@ -365,16 +400,16 @@ class TaskViewSet(viewsets.ViewSet):
 
 
     def update(self, request, pk=None, project_pk=None, partial=False):
-        get_and_check_project(request, project_pk, ('change_project', ))
         try:
             task = self.queryset.get(pk=pk, project=project_pk)
+            check_project_perms(request, task.project, ('change_project', ))
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
         # Check that a user has access to reassign a project
         if 'project' in request.data:
             try:
-                get_and_check_project(request, request.data['project'], ('change_project', ))
+                get_and_check_project(request, request.data['project'], ('change_project', ), defer=True)
             except exceptions.NotFound:
                 raise exceptions.PermissionDenied()
 
@@ -393,7 +428,7 @@ class TaskViewSet(viewsets.ViewSet):
 
 
 class TaskNestedView(APIView):
-    queryset = models.Task.objects.all().defer('orthophoto_extent', 'dtm_extent', 'dsm_extent', )
+    queryset = models.Task.objects.all().select_related('project')
     permission_classes = (AllowAny, )
 
     def get_and_check_task(self, request, pk, annotate={}):
@@ -404,7 +439,7 @@ class TaskNestedView(APIView):
 
         # Check for permissions, unless the task is public
         if not (task.public or task.project.public):
-            get_and_check_project(request, task.project.id)
+            check_project_perms(request, task.project)
 
         return task
 
@@ -687,8 +722,8 @@ class TaskAssetsImport(APIView):
                     for chunk in files[0].chunks():
                         fd.write(chunk)
                 else:
-                    with open(files[0].temporary_file_path(), 'rb') as file:
-                        fd.write(file.read())
+                    with open(files[0].temporary_file_path(), 'rb') as f:
+                        shutil.copyfileobj(f, fd)
             
             if chunk_index + 1 < total_chunk_count:
                 return Response({'uploaded': True}, status=status.HTTP_200_OK)
@@ -721,3 +756,20 @@ class TaskAssetsImport(APIView):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+"""
+Task safe textured model endpoint
+"""
+class TaskSafeTexturedModel(TaskNestedView):
+    def get(self, request, pk=None, project_pk=None):
+        """
+        Downloads a task's safe textured model (if available)
+        """
+        task = self.get_and_check_task(request, pk)
+
+        try:
+            model_file = task.get_safe_textured_model()
+            return download_file_response(request, model_file, 'attachment')
+        except FileNotFoundError:
+            raise exceptions.NotFound(_("Asset does not exist"))
