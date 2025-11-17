@@ -1,0 +1,48 @@
+.leaflet-control-measure,
+.leaflet-measure-resultpopup{
+    h3{
+        font-size: 120%;
+    }
+}
+
+.leaflet-control-measure-interaction{
+    a{
+        width: auto !important;
+        height: auto !important;
+        line-height: auto !important;
+        display: initial !important;
+        &:hover{
+            background-color: inherit !important;
+        }
+    }
+}
+
+.quadrat-created{
+    margin-bottom: 8px;
+}
+.quadrat-created .created-title{
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.quadrat-created .quadrat-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.quadrat-created .quadrat-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 0;
+    label{
+        font-size: 12px;
+        color: #333;
+    }
+}
+.quadrat-created .quadrat-item .actions a{
+    margin-left: 8px;
+}
+
+.quadrat-control .leaflet-control-measure-toggle {
+    background-image: url('./static/icon.png')!important;
+}

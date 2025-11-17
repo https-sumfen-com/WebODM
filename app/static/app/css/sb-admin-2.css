@@ -101,6 +101,7 @@ body {
 .sidebar .sidebar-nav.navbar-collapse {
     padding-right: 0;
     padding-left: 0;
+    width: 100%;
 }
 
 .sidebar .sidebar-search {
@@ -138,10 +139,7 @@ body {
 
 @media(min-width:768px) {
     .sidebar {
-        z-index: 1;
-        position: absolute;
         width: 250px;
-        top: 51px;
     }
 
     .navbar-top-links .dropdown-messages,

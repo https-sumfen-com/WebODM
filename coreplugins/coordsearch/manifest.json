@@ -1,0 +1,13 @@
+{
+  "name": "Coordinate Search",
+  "webodmMinVersion": "2.5.0",
+  "description": "Search and center map to coordinates",
+  "version": "0.1.0",
+  "author": "WebODM",
+  "email": "pt@masseranolabs.com",
+  "repository": "https://github.com/OpenDroneMap/WebODM",
+  "tags": ["search", "map", "coordinates"],
+  "homepage": "https://github.com/OpenDroneMap/WebODM",
+  "experimental": true,
+  "deprecated": false
+}

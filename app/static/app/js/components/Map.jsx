@@ -850,7 +850,7 @@ _('Example:'),
         this.setState({showLoading: false});
         this.map.fitBounds(this.mapBounds);
 
-        this.map.on('click', e => {
+        /* this.map.on('click', e => {
           if (PluginsAPI.Map.handleClick(e)) return;
           if (this.sideBySideCtrl) return;
           
@@ -863,7 +863,8 @@ _('Example:'),
               break;
             }
           }
-        }).on('popupopen', e => {
+        }) */
+         /*  .on('popupopen', e => {
             // Load task assets links in popup
             if (e.popup && e.popup._source && e.popup._content && !e.popup.options.lazyrender){
                 const infoWindow = e.popup._content;
@@ -904,7 +905,7 @@ _('Example:'),
             if (e.popup && e.popup.options.lazyrender){
                 e.popup.setContent(e.popup.options.lazyrender());
             }
-        });
+        }); */
     }).catch(e => {
         this.setState({showLoading: false, error: e.message});
     });
