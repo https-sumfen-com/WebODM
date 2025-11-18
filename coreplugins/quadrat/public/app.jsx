@@ -100,10 +100,9 @@ export default class App {
     const $btnExportExcel = $(`<br/><a href='#' class='js-start start'>${_('导出所有样方到Excel')}</a>`)
     $btnExportExcel.appendTo($(measure.$startPrompt).children('ul.tasks'))
     $btnExportExcel.on('click', async () => { await this.exportAllToExcel() })
-
+    this.initEcho()
     this.renderQuadratList()
     this.generateAllQuadratStats()
-    this.initEcho()
 
     this.map.on('click', this.hideGlobalTooltip)
     this.map.on('movestart', this.hideGlobalTooltip)
@@ -180,6 +179,14 @@ export default class App {
     return found
   }
 
+  setAllPopupsError(message){
+    const msg = String(message)
+    this.map.eachLayer(layer => {
+      const mp = layer._measurePopup
+      if (mp && typeof mp.setState === 'function') mp.setState({ error: msg })
+    })
+  }
+
   async getSamplingId(){
     if (this.samplingId) return this.samplingId
     const task = this.getTaskFromMap()
@@ -227,16 +234,16 @@ export default class App {
       this.samplingId = samplingId
       $.ajax({ type: 'POST', url: `${this.apiBase}/api/odm/samplings/${samplingId}/statistics`, data: JSON.stringify(payload), contentType: 'application/json' })
         .done((_r2, _t2, jq2) => {
-           if (!(jq2.status === 200 || jq2.status === 202)) return
+           if (!(jq2.status === 200 || jq2.status === 202)) { this.setAllPopupsError(_('统计任务启动失败: ') + jq2.status); return }
            if (this.pollTimer) clearInterval(this.pollTimer)
            this.pollTimer = setInterval(() => {
             $.ajax({ type: 'GET', url: `${this.apiBase}/api/odm/samplings/${samplingId}` })
                .done((r3, _t3, jq3) => {
-                 if (jq3.status !== 200) return
-                  const progress = r3.progress || 0
-                  if (progress === 100 && r3.state === 'COMPLETED') {
+                 if (jq3.status !== 200) { this.setAllPopupsError(_('查询失败: ') + jq3.status); return }
+                 const progress = r3.progress || 0
+                 if (progress === 100 && r3.state === 'COMPLETED') {
                     if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null }
-                  const quadrats = Array.isArray(r3.quadrats) ? r3.quadrats : []
+                 const quadrats = Array.isArray(r3.quadrats) ? r3.quadrats : []
                   const byName = {}
                   for (let i=0;i<quadrats.length;i++){
                     const q = quadrats[i]
@@ -280,13 +287,15 @@ export default class App {
                       }
                       const stats = { vertices, centroid: { lon: cx, lat: cy }, reflectance, indices, raw: matched }
                       if (mp && mp.props && mp.props.resultFeature) mp.props.resultFeature._quadratProps = stats
-                      if (typeof mp.setState === 'function') mp.setState({})
+                      if (typeof mp.setState === 'function') mp.setState({ error: '' })
                     }
                   })
                 }
                 })
-            }, 2000)
+               .fail(err => { this.setAllPopupsError(err) })
+           }, 2000)
           })
+        .fail(err => { this.setAllPopupsError(err && err.status ? (_('统计任务启动失败: ') + err.status) : _('统计任务启动失败')) })
     })
   }
 
@@ -300,8 +309,8 @@ export default class App {
     const r2 = await fetch(`${this.apiBase}/api/odm/samplings/${sid}/export_to_excel`)
     if (!r2.ok) return
     const data = await r2.json()
-    console.log(data)
-    window.dispatchEvent(
+    console.log(`${this.apiBase}/${data}`)
+    window.top.dispatchEvent(
         new CustomEvent("openFile", {
             detail: { type: "saveFile", files: [`${this.apiBase}/${data}`] },
         })
