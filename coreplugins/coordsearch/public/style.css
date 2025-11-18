@@ -1,0 +1,24 @@
+.coordsearch-control{
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
+.coordsearch-control .leaflet-bar a{
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  font-size: 16px;
+}
+.coordsearch-toggle{ display: flex; align-items: center; }
+.coordsearch-input{ display: none; }
+.coordsearch-expanded .coordsearch-input{ display: inline-flex; }
+.coordsearch-input input{
+  height: 32px;
+  line-height: 32px;
+  font-size: 12px;
+  padding: 0 6px;
+  margin-left: 6px;
+}
+.coordsearch-input button{
+  font-size: 12px;
+  margin-left: 6px;
+}

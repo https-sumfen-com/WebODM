@@ -1,0 +1,13 @@
+{
+    "name": "Quadrat Plot Analyzer",
+    "webodmMinVersion": "2.5.0",
+    "description": "Draw quadrats and display polygon stats and indices",
+    "version": "0.1.0",
+    "author": "WebODM",
+    "email": "pt@masseranolabs.com",
+    "repository": "https://github.com/OpenDroneMap/WebODM",
+    "tags": ["quadrat", "polygon", "stats", "indices"],
+    "homepage": "https://github.com/OpenDroneMap/WebODM",
+    "experimental": true,
+    "deprecated": false
+}

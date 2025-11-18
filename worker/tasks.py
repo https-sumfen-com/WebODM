@@ -109,8 +109,27 @@ def cleanup_tmp_directory():
             else:
                 shutil.rmtree(filepath, ignore_errors=True)
 
-            logger.info('Cleaned up: %s (%s)' % (f, modified))
+            logger.info('Cleaned up: %s (%s)' % (filepath, modified))
 
+
+@app.task(ignore_result=True)
+def cleanup_cache_directory():
+    # Delete files and folder in the task_assets folder after 30 days
+    task_assets_cache = os.path.join(settings.MEDIA_CACHE, "task_assets")
+    time_limit = 60 * 60 * 24 * 30
+
+    if os.path.isdir(task_assets_cache):
+        for f in os.listdir(task_assets_cache):
+            now = time.time()
+            filepath = os.path.join(task_assets_cache, f)
+            modified = os.stat(filepath).st_mtime
+            if modified < now - time_limit:
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
+                else:
+                    shutil.rmtree(filepath, ignore_errors=True)
+
+                logger.info('Cleaned up: %s (%s)' % (filepath, modified))
 
 # Based on https://stackoverflow.com/questions/22498038/improve-current-implementation-of-a-setinterval-python/22498708#22498708
 def setInterval(interval, func, *args):
@@ -185,9 +204,9 @@ def get_pending_tasks():
 
 @app.task(ignore_result=True)
 def process_pending_tasks():
-    tasks = get_pending_tasks()
-    for task in tasks:
-        process_task.delay(task.id)
+    task_ids = get_pending_tasks().values_list('id', flat=True)
+    for task_id in task_ids:
+        process_task.delay(task_id)
 
 
 @app.task(bind=True, time_limit=settings.WORKERS_MAX_TIME_LIMIT)

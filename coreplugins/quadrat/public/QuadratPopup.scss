@@ -1,0 +1,94 @@
+.plugin-quadrat.popup {
+    width: 340px;
+
+    p {
+        margin: 0;
+    }
+
+    .error.long {
+        overflow: scroll;
+        display: block;
+        max-height: 200px;
+    }
+
+    a.export-measurements,
+    a.export-excel {
+        display: block;
+        margin-top: 12px;
+    }
+
+    .table-block {
+        p {
+            margin-top: 8px;
+
+        }
+    }
+
+    .vertices-line {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6px;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        border: 1px solid #ddd;
+        padding: 4px 6px;
+        font-size: 12px;
+    }
+
+    .stats-table th {
+        background: #f7f7f7;
+        font-weight: 600;
+    }
+}
+
+.quad-tooltip {
+    position: fixed;
+    z-index: 99999;
+    max-width: 600px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    display: none;
+    word-break: break-all;
+}
+
+.quadrat-popup .plugin-measure.popup {
+    display: none !important;
+}
+
+.quadrat-popup .leaflet-popup-content {
+    max-width: 340px !important;
+    width: 340px !important;
+}
+$spacing-external: 12px;
+$spacing-internal: 10px;
+$color-divider: #ddd;
+.quadrat-popup .tasks {
+    display: none!important;
+    margin: $spacing-external 0 0 0;
+    padding: $spacing-internal 0 0 0;
+    border-top: solid 1px $color-divider;
+    text-align: right;
+
+    list-style: none;
+    list-style-image: none;
+
+    li {
+      display: inline;
+      margin: 0 $spacing-internal 0 0;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
