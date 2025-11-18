@@ -718,10 +718,10 @@ class ProjectListItem extends React.Component {
 
         <div className="row no-margin">
           <ErrorMessage bind={[this, 'error']} />
-          {/* <div className="btn-group project-buttons">
+          <div className="btn-group project-buttons">
             {this.hasPermission("add") ? 
               <div className={"btn-group " + (this.state.upload.uploading ? "hide" : "")}>
-                <button type="button" 
+                {/* <button type="button" 
                       className="btn btn-primary btn-sm"
                       onClick={this.handleUpload}
                       ref={this.setRef("uploadButton")}>
@@ -732,11 +732,10 @@ class ProjectListItem extends React.Component {
                       className="btn btn-default btn-sm"
                       onClick={this.handleImportTask}>
                   <i className="glyphicon glyphicon-import"></i> <span className="hidden-xs">{_("Import")}</span>
-                </button>
+                </button> */}
                 {this.state.buttons.map((button, i) => <React.Fragment key={i}>{button}</React.Fragment>)}
               </div>
             : ""}
-
             <button disabled={this.state.upload.error !== ""} 
                     type="button"
                     className={"btn btn-danger btn-sm " + (!this.state.upload.uploading ? "hide" : "")} 
@@ -744,7 +743,7 @@ class ProjectListItem extends React.Component {
               <i className="glyphicon glyphicon-remove-circle"></i>
               Cancel Upload
             </button> 
-          </div> */}
+          </div>
 
           <div className="project-name">
             {data.name}
