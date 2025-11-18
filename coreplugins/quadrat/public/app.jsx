@@ -11,8 +11,9 @@ import { _, get_format } from 'webodm/classes/gettext'
 import { unitSystem } from 'webodm/classes/Units'
 
 export default class App {
-  constructor(map) {
+  constructor(map, injectedTask) {
     this.map = map
+    this.injectedTask = injectedTask || null
     this.apiBase = window.QUADRAT_API_BASE || 'http://localhost:7700'
     window.QUADRAT_API_BASE = this.apiBase
     this.hideGlobalTooltip = this.hideGlobalTooltip.bind(this)
@@ -171,6 +172,8 @@ export default class App {
   }
 
   getTaskFromMap() {
+    console.log('getTaskFromMap', this.injectedTask)
+    if (this.injectedTask) return this.injectedTask
     let found = null
     this.map.eachLayer(layer => {
       const meta = layer && layer[Symbol.for('meta')]

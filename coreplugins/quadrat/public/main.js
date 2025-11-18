@@ -15,13 +15,13 @@ PluginsAPI.Map.willAddControls([
                 ids[task.id] = true;
             }
         }
-        console.log(tasks)
+        let project_id = null, task_id = null
         if (tasks.length === 1){ project_id = tasks[0].project; task_id = tasks[0].id }
         try{
             const r = await fetch(`${apiBase}/api/odm/get_report_detail?project_id=${encodeURIComponent(project_id||'')}&task_id=${encodeURIComponent(task_id||'')}`)
             if (r.ok){
                 const data = await r.json()
-                if (data){ new App(map); return }
+                if (data){ new App(map, tasks[0]); return }
             }
         }catch(e){}
         console.warn('Quadrat plugin hidden: no report detail found')
