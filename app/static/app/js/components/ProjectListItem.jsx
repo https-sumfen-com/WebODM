@@ -718,7 +718,7 @@ class ProjectListItem extends React.Component {
 
         <div className="row no-margin">
           <ErrorMessage bind={[this, 'error']} />
-          <div className="btn-group project-buttons">
+          {/* <div className="btn-group project-buttons">
             {this.hasPermission("add") ? 
               <div className={"btn-group " + (this.state.upload.uploading ? "hide" : "")}>
                 <button type="button" 
@@ -744,7 +744,7 @@ class ProjectListItem extends React.Component {
               <i className="glyphicon glyphicon-remove-circle"></i>
               Cancel Upload
             </button> 
-          </div>
+          </div> */}
 
           <div className="project-name">
             {data.name}
