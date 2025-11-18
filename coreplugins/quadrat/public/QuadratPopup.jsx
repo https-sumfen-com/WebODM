@@ -142,7 +142,7 @@ export default class QuadratPopup extends React.Component {
         </div>
       ] : ''}
       {error && <p>{_('分析:')} <span className={'error theme-background-failed ' + (String(error).length > 200 ? 'long' : '')}>{String(error)}</span></p>}
-      <a href="#" onClick={this.exportMeasurement} className="export-measurements"><i className="fa fa-download"></i> {_('导出到GeoJSON')}</a>
+      {/* <a href="#" onClick={this.exportMeasurement} className="export-measurements"><i className="fa fa-download"></i> {_('导出到GeoJSON')}</a> */}
     </div>)
   }
 

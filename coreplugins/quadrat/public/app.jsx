@@ -77,26 +77,26 @@ export default class App {
       }
     }
 
-    const $btnExportAll = $(`<br/><a href='#' class='js-start start'>${_('导出所有样方到GeoJSON')}</a>`)
-    $btnExportAll.appendTo($(measure.$startPrompt).children('ul.tasks'))
-    $btnExportAll.on('click', () => {
-      const features = []
-      map.eachLayer(layer => {
-        const mp = layer._measurePopup
-        if (mp) {
-          features.push(mp.getGeoJSON())
-        }
-      })
-      if (features.length === 0){
-        alert(_('当前无样方数据，请圈画样方后再导出'))
-        return
-      }
-      const geoJSON = {
-        type: 'FeatureCollection',
-        features: features
-      }
-      Utils.saveAs(JSON.stringify(geoJSON, null, 4), 'quadrats.geojson')
-    })
+    // const $btnExportAll = $(`<br/><a href='#' class='js-start start'>${_('导出所有样方到GeoJSON')}</a>`)
+    // $btnExportAll.appendTo($(measure.$startPrompt).children('ul.tasks'))
+    // $btnExportAll.on('click', () => {
+    //   const features = []
+    //   map.eachLayer(layer => {
+    //     const mp = layer._measurePopup
+    //     if (mp) {
+    //       features.push(mp.getGeoJSON())
+    //     }
+    //   })
+    //   if (features.length === 0){
+    //     alert(_('当前无样方数据，请圈画样方后再导出'))
+    //     return
+    //   }
+    //   const geoJSON = {
+    //     type: 'FeatureCollection',
+    //     features: features
+    //   }
+    //   Utils.saveAs(JSON.stringify(geoJSON, null, 4), 'quadrats.geojson')
+    // })
 
     const $btnExportExcel = $(`<br/><a href='#' class='js-start start'>${_('导出所有样方到Excel')}</a>`)
     $btnExportExcel.appendTo($(measure.$startPrompt).children('ul.tasks'))
