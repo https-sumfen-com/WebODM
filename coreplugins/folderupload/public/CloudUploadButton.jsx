@@ -12,38 +12,31 @@ class CloudUploadButton extends React.Component {
             ipConfig: 'localhost',
             buttonHidden: false, // 控制按钮是否隐藏
             progress: null,
-            error: ""
+            error: "",
+            deviceHeaders: null
         };
     }
 
-    // 获取token,Cid
-    GetTokenCid = (type) => {
-        var system_config = "";
-        var company_config = "";
-        var user_config = "";
-
-        if (window.localStorage.getItem('system_config')) {
-            let systemConfig = window.localStorage.getItem('system_config');
-            system_config = systemConfig ? JSON.parse(systemConfig) : "";
+    // 通过接口获取并缓存设备头部信息
+    ensureDeviceHeaders = async () => {
+        if (this.state.deviceHeaders) return this.state.deviceHeaders;
+        try{
+            const res = await fetch(`http://${this.state.ipConfig}:5000/api/devices/is-activated`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            const data = json && (json.data || json) || {};
+            const headers = {
+                ...data.extra.header || {},
+                service_type_name: 'growth_trend_analysis'
+            };
+            this.setState({ deviceHeaders: headers });
+            return headers;
+        }catch(err){
+            this.setState({ error: err.toString() });
+            throw err;
         }
-        if (window.localStorage.getItem('userInfo')) {
-            let userInfo = window.localStorage.getItem('userInfo');
-            user_config = userInfo ? JSON.parse(userInfo) : "";
-        }
-        if (window.localStorage.getItem('companyInfo')) {
-            let companyInfo = window.localStorage.getItem('companyInfo');
-            company_config = companyInfo ? JSON.parse(companyInfo) : "";
-        }
-
-        let value = {
-            token: system_config?.token || 'f5da30d4b4bf782a005a1e6b3b180bd8',
-            cid: (company_config && company_config?.id) ? company_config.id : '288',
-            "entity-id": window.localStorage.getItem('entity-id') || '1',
-            "terminal-id": window.localStorage.getItem('terminal-id') || '410',
-            service_type_name: 'growth_trend_analysis'  //传入：growth_trend_analysis（长势分析）  或 3d_phenotype（三维表型）
-        }
-        return value[type];
     }
+
 
     componentDidMount() {
         // 监听来自iframe的消息
@@ -88,14 +81,12 @@ class CloudUploadButton extends React.Component {
     // 上传报告到云端
     uploadReport = async (projectId, taskId, reportNo, taskName) => {
         try {
+            await this.ensureDeviceHeaders();
             const response = await $.ajax({
                 url: `http://${this.state.ipConfig}:7700/api/odm/upload_report`,
                 type: 'POST',
                 contentType: 'application/json',
-                headers: {
-                    'cid': this.GetTokenCid('cid'),
-                    'token': this.GetTokenCid('token')
-                },
+                headers: this.state.deviceHeaders,
                 data: JSON.stringify({
                     project_id: projectId,
                     task_id: taskId,
