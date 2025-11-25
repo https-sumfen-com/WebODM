@@ -39,36 +39,6 @@ class CloudDownloadButton extends React.Component {
             this.setState({ downloading: false });
         }
     }
-
-    // 获取token,Cid
-    GetTokenCid = (type) => {
-        var system_config = "";
-        var company_config = "";
-        var user_config = "";
-
-        if (window.localStorage.getItem('system_config')) {
-            let systemConfig = window.localStorage.getItem('system_config');
-            system_config = systemConfig ? JSON.parse(systemConfig) : "";
-        }
-        if (window.localStorage.getItem('userInfo')) {
-            let userInfo = window.localStorage.getItem('userInfo');
-            user_config = userInfo ? JSON.parse(userInfo) : "";
-        }
-        if (window.localStorage.getItem('companyInfo')) {
-            let companyInfo = window.localStorage.getItem('companyInfo');
-            company_config = companyInfo ? JSON.parse(companyInfo) : "";
-        }
-
-        let value = {
-            token: system_config?.token || 'f5da30d4b4bf782a005a1e6b3b180bd8',
-            cid: (company_config && company_config?.id) ? company_config.id : '288',
-            "entity-id": window.localStorage.getItem('entity-id') || '1',
-            "terminal-id": window.localStorage.getItem('terminal-id') || '410',
-            service_type_name: 'growth_trend_analysis'  //传入：growth_trend_analysis（长势分析）  或 3d_phenotype（三维表型）
-        }
-        return value[type];
-    }
-
     // RGB下载功能 - 使用原有下载逻辑
     handleRgbDownload = () => {
         const { task } = this.props;
