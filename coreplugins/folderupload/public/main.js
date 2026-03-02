@@ -1,3 +1,17 @@
+// ============================================================
+// 统一 IP / 端口配置 —— 修改 HOST 即可切换所有地址
+// ============================================================
+window.SFPRO_CONFIG = window.SFPRO_CONFIG || (function() {
+    const HOST = 'localhost';
+    return {
+        HOST,
+        WEBODM_URL:    'http://' + HOST + ':8000',
+        ODM_API_URL:   'http://' + HOST + ':7700',
+        RAW_API_URL:   'http://' + HOST + ':5555',
+        DEVICE_API_URL:'http://' + HOST + ':5000',
+    };
+})();
+
 // 全局上传任务管理器 - 确保只初始化一次
 if (!window.FolderUploadTaskManager) {
     window.FolderUploadTaskManager = {
@@ -58,7 +72,7 @@ const checkUploadRecord = async (projectId, taskId) => {
 
     try {
         const response = await $.ajax({
-            url: `http://localhost:7700/api/odm/get_report_detail`,
+            url: window.SFPRO_CONFIG.ODM_API_URL + '/api/odm/get_report_detail',
             type: 'GET',
             data: {
                 project_id: projectId,

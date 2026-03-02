@@ -2,6 +2,7 @@ import React from 'React';
 import PropTypes from 'prop-types';
 import NewTaskPanel from 'webodm/components/NewTaskPanel';
 import CanvasSelect from 'canvas-select';
+import config from './config';
 
 class NewTaskButton extends React.Component {
     static propTypes = {
@@ -279,7 +280,7 @@ class NewTaskButton extends React.Component {
                 console.log('收到文件列表:', list);
 
                 const purpose = this.state.folderSelectPhase;
-                const RAW_BASE = 'http://localhost:5555/api/raw';
+                const RAW_BASE = `${config.RAW_API_URL}/api/raw`;
 
                 if (purpose === 'calibrationTif') {
                     const tifItem = list.find(it => /\.tif$/i.test(it.name)) || list[0];
@@ -683,7 +684,7 @@ class NewTaskButton extends React.Component {
     parseTifGroups = (items, auth) => {
         try {
             this._cancelOps = false;
-            const RAW_BASE = 'http://localhost:5555/api/raw/';
+            const RAW_BASE = `${config.RAW_API_URL}/api/raw/`;
             const groupsMap = {};
             (items || []).forEach(it => {
                 let name = null;
@@ -1281,7 +1282,7 @@ class NewTaskButton extends React.Component {
 
     // 远程校验：当本地规则通过后，调用后端接口校验多边形区域合法性
     remoteValidateRadiometric = async () => {
-        const endpoint = 'http://localhost:7700/api/odm/surface_reflectance';
+        const endpoint = `${config.ODM_API_URL}/api/odm/surface_reflectance`;
         const groups = this.state.calibrationGroups || [];
         const values = this.state.calibrationValues || {};
         const polygons = this.state.channelPolygons || {};

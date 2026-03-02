@@ -1,0 +1,13 @@
+// ============================================================
+// 统一 IP / 端口配置
+// 只需修改 HOST，所有服务地址随之变更
+// ============================================================
+const HOST = 'localhost';
+
+export default {
+    HOST,
+    WEBODM_URL:    `http://${HOST}:8000`,  // WebODM 主服务
+    ODM_API_URL:   `http://${HOST}:7700`,  // ODM 作业管理服务
+    RAW_API_URL:   `http://${HOST}:5555`,  // 原始文件服务（TIF 读取）
+    DEVICE_API_URL:`http://${HOST}:5000`,  // 设备服务
+};

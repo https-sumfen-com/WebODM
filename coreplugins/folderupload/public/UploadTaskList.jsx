@@ -4,6 +4,7 @@ import $ from 'jquery';
 import csrf from 'webodm/django/csrf';
 import ResizeModes from 'webodm/classes/ResizeModes';
 import { _, interpolate } from 'webodm/classes/gettext';
+import config from './config';
 
 class UploadTaskList extends React.Component {
     static propTypes = {
@@ -16,8 +17,6 @@ class UploadTaskList extends React.Component {
         this.state = {
             expanded: false,
             tasks: [],
-            // ipConfig: '192.168.3.249', // TODO
-            ipConfig: 'localhost',
             uploadingTasks: new Map(), // taskId -> upload state
             odmTasks: [], // 从ODM接口获取的任务列表
             reportTasks: [], // 从get_reports接口获取的云端任务列表
@@ -98,7 +97,7 @@ class UploadTaskList extends React.Component {
     fetchOdmTasks = async () => {
         try {
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/get_odm_jobs?only_running=false`,
+                url: `${config.ODM_API_URL}/api/odm/get_odm_jobs?only_running=false`,
                 type: 'GET',
                 dataType: 'json'
             });
@@ -113,7 +112,7 @@ class UploadTaskList extends React.Component {
     fetchReportTasks = async () => {
         try {
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/get_reports`,
+                url: `${config.ODM_API_URL}/api/odm/get_reports`,
                 type: 'GET',
                 data: {
                     only_running: false
@@ -137,13 +136,13 @@ class UploadTaskList extends React.Component {
                 odm_job_type: task.type === 'rgb' ? 'rgb' : 'multispectral',
                 odm_src_folder: task.folderPath,
                 odm_samplinge_time: task.samplingDate ? new Date(task.samplingDate).toISOString() : new Date().toISOString(),
-                odm_host: `http://${this.state.ipConfig}:8000` || window.location.origin,
+                odm_host: config.WEBODM_URL,
                 radiometric: task.radiometric || null,
                 odm_create_at: new Date().toISOString()
             };
 
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/create_odm_job`,
+                url: `${config.ODM_API_URL}/api/odm/create_odm_job`,
                 contentType: 'application/json',
                 data: JSON.stringify(submitData),
                 dataType: 'json',
@@ -260,7 +259,7 @@ class UploadTaskList extends React.Component {
         }
 
         const response = await $.ajax({
-            url: `http://${this.state.ipConfig}:8000/api/projects/${task.projectId}/tasks/`,
+            url: `${config.WEBODM_URL}/api/projects/${task.projectId}/tasks/`,
             contentType: 'application/json',
             data: JSON.stringify(formData),
             dataType: 'json',
@@ -347,7 +346,7 @@ class UploadTaskList extends React.Component {
     cancelTask = async (task) => {
         try {
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/cancel_odm_job?project_id=${task.projectId || 1}&task_id=${task.taskId}`,
+                url: `${config.ODM_API_URL}/api/odm/cancel_odm_job?project_id=${task.projectId || 1}&task_id=${task.taskId}`,
                 type: 'GET',
                 dataType: 'json'
             });
@@ -369,7 +368,7 @@ class UploadTaskList extends React.Component {
 
         try {
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/remove_odm_job?project_id=${task.projectId || 1}&task_id=${task.taskId}`,
+                url: `${config.ODM_API_URL}/api/odm/remove_odm_job?project_id=${task.projectId || 1}&task_id=${task.taskId}`,
                 type: 'GET',
                 dataType: 'json'
             });
