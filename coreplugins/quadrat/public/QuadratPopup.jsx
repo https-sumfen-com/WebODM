@@ -8,8 +8,13 @@ import $ from 'jquery'
 import L from 'leaflet'
 
 export default class QuadratPopup extends React.Component {
-  static defaultProps = { map: {}, model: {}, resultFeature: {} }
-  static propTypes = { map: PropTypes.object.isRequired, model: PropTypes.object.isRequired, resultFeature: PropTypes.object.isRequired }
+  static defaultProps = { map: {}, model: {}, resultFeature: {}, onEditGeometry: null }
+  static propTypes = { 
+    map: PropTypes.object.isRequired, 
+    model: PropTypes.object.isRequired, 
+    resultFeature: PropTypes.object.isRequired,
+    onEditGeometry: PropTypes.func 
+  }
 
   constructor(props) {
     super(props)
@@ -22,6 +27,7 @@ export default class QuadratPopup extends React.Component {
     this.getGeoJSON = this.getGeoJSON.bind(this)
     this.showTooltip = this.showTooltip.bind(this)
     this.hideTooltip = this.hideTooltip.bind(this)
+    this.handleEditGeometry = this.handleEditGeometry.bind(this)
   }
 
   componentDidMount() {
@@ -71,9 +77,11 @@ export default class QuadratPopup extends React.Component {
     Utils.saveAs(JSON.stringify(geoJSON, null, 4), 'quadrat.geojson')
   }
 
-  
-
-  
+  handleEditGeometry() {
+    if (this.props.onEditGeometry) {
+      this.props.onEditGeometry()
+    }
+  }
 
   render() {
     const { error, featureType } = this.state
@@ -84,15 +92,37 @@ export default class QuadratPopup extends React.Component {
     const centroid = stats && stats.centroid ? stats.centroid : {}
     const reflectance = stats && stats.reflectance ? stats.reflectance : {}
     const indices = stats && stats.indices ? stats.indices : {}
+    const quadratName = stats && stats.raw && stats.raw.name ? stats.raw.name : ''
+    const quadratId = stats && stats.raw && stats.raw.id ? stats.raw.id : null
     const verticesText = vertices.map(v => `${v.lon},${v.lat}`).join(' | ')
+    
     return (<div className="plugin-quadrat popup">
-      {featureType == 'Polygon' && <p>{_('周长:')} {this.props.model.lengthDisplay}</p>}
-      {featureType == 'Polygon' && <p>{_('面积:')} {this.props.model.areaDisplay}</p>}
+      {quadratName && <p className="quadrat-name-title"><strong>{_('样方名称:')}</strong> {quadratName}</p>}
+      
+      {featureType == 'Polygon' && (
+        <div className="info-section">
+          <div className="info-header">
+            <span className="info-title">{_('基本信息')}</span>
+            {quadratId && (
+              <a href="#" className="edit-geometry-btn" onClick={(e) => { e.preventDefault(); this.handleEditGeometry(); }} title={_('编辑样方范围')}>
+                <i className="fa fa-edit"></i>
+              </a>
+            )}
+          </div>
+          <div className="info-content">
+            <p><span className="info-label">{_('周长:')}</span> <span className="info-value">{this.props.model.lengthDisplay}</span></p>
+            <p><span className="info-label">{_('面积:')}</span> <span className="info-value">{this.props.model.areaDisplay}</span></p>
+            <p className="vertices-line" onMouseEnter={(e) => this.showTooltip(e, verticesText)} onMouseLeave={this.hideTooltip}>
+              <span className="info-label">{_('样方坐标:')}</span> <span className="info-value">{verticesText}</span>
+            </p>
+            <p><span className="info-label">{_('中心点坐标:')}</span> <span className="info-value">{(centroid.lon !== undefined && centroid.lat !== undefined) ? `${centroid.lon},${centroid.lat}` : ''}</span></p>
+          </div>
+        </div>
+      )}
+      
       {featureType == 'Polygon' && !stats && !error && <p>{_('分析:')} <i>{_('计算中…')}</i> <i className="fa fa-cog fa-spin fa-fw" /></p>}
       {stats ? [
-        <p className="vertices-line" onMouseEnter={(e) => this.showTooltip(e, verticesText)} onMouseLeave={this.hideTooltip}>{_('样方坐标:')} {verticesText}</p>,
-        <p>{_('中心点坐标:')} {(centroid.lon !== undefined && centroid.lat !== undefined) ? `${centroid.lon},${centroid.lat}` : ''}</p>,
-        <div className="table-block">
+        <div className="table-block" key="tables">
           <p>{_('反射率统计:')}</p>
           <table className="stats-table">
             <thead>
@@ -142,7 +172,6 @@ export default class QuadratPopup extends React.Component {
         </div>
       ] : ''}
       {error && <p>{_('分析:')} <span className={'error theme-background-failed ' + (String(error).length > 200 ? 'long' : '')}>{String(error)}</span></p>}
-      {/* <a href="#" onClick={this.exportMeasurement} className="export-measurements"><i className="fa fa-download"></i> {_('导出到GeoJSON')}</a> */}
     </div>)
   }
 

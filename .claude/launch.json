@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "webodm-dev",
+      "runtimeExecutable": "wsl.exe",
+      "runtimeArgs": ["-e", "bash", "-c", "cd /mnt/e/SFPRO/ODM/WebODM && ./webodm.sh restart --dev --dev-watch-plugins"],
+      "port": 8000
+    }
+  ]
+}

@@ -54,7 +54,11 @@ class NewTaskButton extends React.Component {
             pendingCalibrationAuth: '',
             calibrationErrors: {},
             // 控制是否启用用户交互触发的实时校验（加载/切换TIF时默认不校验，待用户操作后再开启）
-            validationActivated: false
+            validationActivated: false,
+            // 样方相关状态
+            showQuadratModal: false,
+            quadratFolderPath: '',
+            quadratSize: ''
         };
 
         // 绑定事件监听器
@@ -212,7 +216,12 @@ class NewTaskButton extends React.Component {
 
                 // 根据选择目的进行处理
                 const purpose = this.state.folderSelectPhase;
-                if (purpose === 'calibrationFolder') {
+                if (purpose === 'quadratFolder') {
+                    this.setState({ quadratFolderPath: fullPath, folderSelectPhase: null }, () => {
+                        console.log('[样方] 文件夹已选择:', this.state.quadratFolderPath);
+                    });
+                    return;
+                } else if (purpose === 'calibrationFolder') {
                     // 选择用于辐射校正的文件夹
                     this.setState({
                         calibrationFolderPath: fullPath,
@@ -630,6 +639,41 @@ class NewTaskButton extends React.Component {
         });
     }
 
+    // 打开样方弹窗（仅多光谱，标定完成后调用）
+    openQuadratModal = () => {
+        this.setState({ showQuadratModal: true, quadratFolderPath: '', quadratSize: '' }, () => {
+            console.log('样方弹窗已打开');
+        });
+    }
+
+    // 选择样方文件夹
+    selectQuadratFolder = () => {
+        this.setState({ folderSelectPhase: 'quadratFolder' });
+        try {
+            window.dispatchEvent(new CustomEvent("openFile", { detail: { type: "getPath" } }));
+        } catch (e) {
+            console.error('选择样方文件夹失败:', e);
+        }
+    }
+
+    // 跳过样方步骤，直接进入任务创建
+    skipQuadratAndProceed = () => {
+        console.log('[样方] 已跳过样方选择');
+        this.setState({ showQuadratModal: false, quadratFolderPath: '', quadratSize: '' }, () => {
+            this.prepareTaskCreation();
+        });
+    }
+
+    // 确认样方信息，进入任务创建
+    confirmQuadratAndProceed = () => {
+        const { quadratFolderPath, quadratSize } = this.state;
+        console.log('[样方] 样方文件夹路径:', quadratFolderPath);
+        console.log('[样方] 样方大小 (m):', quadratSize);
+        this.setState({ showQuadratModal: false }, () => {
+            this.prepareTaskCreation();
+        });
+    }
+
     // 关闭标定弹窗（不执行标定，直接创建任务），并取消所有转换/加载
     skipCalibrationAndProceed = () => {
         this._cancelOps = true;
@@ -642,7 +686,7 @@ class NewTaskButton extends React.Component {
             console.warn('中断加载请求失败:', e);
         }
         this.setState({ calibrationData: null, showCalibrationModal: false, tifCacheLoading: false, bandLoading: false, calibrationTifLoading: false }, () => {
-            this.prepareTaskCreation();
+            this.openQuadratModal();
         });
     }
 
@@ -1385,7 +1429,7 @@ class NewTaskButton extends React.Component {
                     console.warn('中断加载请求失败:', e);
                 }
                 this.setState({ calibrationData: data, showCalibrationModal: false, tifCacheLoading: false, bandLoading: false, calibrationTifLoading: false }, () => {
-                    this.prepareTaskCreation();
+                    this.openQuadratModal();
                 });
             })
             .catch(() => {
@@ -1988,6 +2032,89 @@ class NewTaskButton extends React.Component {
                         onClick: this.handleCloseLoading,
                         style: { marginTop: '15px' }
                     }, '取消')
+                ])
+            ) : null,
+
+            // 样方弹窗（仅多光谱，标定完成后）
+            this.state.showQuadratModal ? this.createModal(
+                React.createElement('div', {
+                    key: 'quadrat-modal',
+                    style: {
+                        background: 'white',
+                        borderRadius: '8px',
+                        padding: '24px',
+                        width: '480px',
+                        zIndex: 100000
+                    }
+                }, [
+                    // 标题
+                    React.createElement('div', {
+                        key: 'quadrat-title',
+                        style: { fontSize: '16px', fontWeight: 600, marginBottom: '20px' }
+                    }, '上传样方文件夹（可选）'),
+
+                    // 选择文件夹
+                    React.createElement('div', { key: 'quadrat-folder-row', style: { marginBottom: '16px' } }, [
+                        React.createElement('label', {
+                            key: 'folder-label',
+                            style: { display: 'block', fontWeight: 500, marginBottom: '6px' }
+                        }, '样方文件夹'),
+                        React.createElement('div', { key: 'folder-input-row', style: { display: 'flex', gap: '8px', alignItems: 'center' } }, [
+                            React.createElement('input', {
+                                key: 'folder-path-display',
+                                type: 'text',
+                                className: 'form-control input-sm',
+                                readOnly: true,
+                                placeholder: '未选择文件夹',
+                                value: this.state.quadratFolderPath,
+                                style: { flex: 1 }
+                            }),
+                            React.createElement('button', {
+                                key: 'folder-select-btn',
+                                type: 'button',
+                                className: 'btn btn-sm btn-default',
+                                onClick: this.selectQuadratFolder
+                            }, '选择文件夹')
+                        ])
+                    ]),
+
+                    // 样方大小
+                    React.createElement('div', { key: 'quadrat-size-row', style: { marginBottom: '24px' } }, [
+                        React.createElement('label', {
+                            key: 'size-label',
+                            style: { display: 'block', fontWeight: 500, marginBottom: '6px' }
+                        }, '样方大小 (m)'),
+                        React.createElement('input', {
+                            key: 'size-input',
+                            type: 'number',
+                            className: 'form-control input-sm',
+                            placeholder: '请输入样方边长，单位：米',
+                            min: '0',
+                            step: '0.1',
+                            value: this.state.quadratSize,
+                            onChange: (e) => this.setState({ quadratSize: e.target.value }),
+                            style: { width: '100%' }
+                        })
+                    ]),
+
+                    // 操作按钮
+                    React.createElement('div', {
+                        key: 'quadrat-footer',
+                        style: { display: 'flex', justifyContent: 'flex-end', gap: '8px' }
+                    }, [
+                        React.createElement('button', {
+                            key: 'skip',
+                            type: 'button',
+                            className: 'btn btn-sm btn-default',
+                            onClick: this.skipQuadratAndProceed
+                        }, '跳过'),
+                        React.createElement('button', {
+                            key: 'confirm',
+                            type: 'button',
+                            className: 'btn btn-sm btn-primary',
+                            onClick: this.confirmQuadratAndProceed
+                        }, '确认')
+                    ])
                 ])
             ) : null,
 
