@@ -1,4 +1,4 @@
-const isDev = true
+const isDev = false
 
 const DEV_CONFIG = {
   API_BASE: 'http://localhost:7700',
