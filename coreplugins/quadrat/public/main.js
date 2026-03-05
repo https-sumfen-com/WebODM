@@ -1,5 +1,5 @@
 // 开发模式检测
-const isDev = true
+const isDev = false
 const DEV_API_BASE = 'http://localhost:7700'
 const DEV_PROJECT_ID = 1
 const DEV_TASK_ID = 'c65bdde1-ba45-4675-a3e1-15d4d691e38d'
