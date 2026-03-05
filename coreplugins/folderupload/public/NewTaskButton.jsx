@@ -58,7 +58,8 @@ class NewTaskButton extends React.Component {
             // 样方相关状态
             showQuadratModal: false,
             quadratFolderPath: '',
-            quadratSize: ''
+            quadratSize: '100',
+            quadratGeometryType: 'square'
         };
 
         // 绑定事件监听器
@@ -404,6 +405,20 @@ class NewTaskButton extends React.Component {
             status: 'pending'
         };
 
+        const quadratDimensionCm = Number(this.state.quadratSize);
+        if (
+            this.state.currentTaskType === 'multispectral' &&
+            this.state.quadratFolderPath &&
+            Number.isFinite(quadratDimensionCm) &&
+            quadratDimensionCm > 0
+        ) {
+            uploadTask.samplePlot = {
+                src_folder: this.state.quadratFolderPath,
+                geometry_type: this.state.quadratGeometryType === 'circle' ? 'circle' : 'square',
+                dimension_cm: quadratDimensionCm
+            };
+        }
+
         // 组装辐射板标定数据 radiometric（分组为二维数组），仅当存在 calibrationGroups 时生成
         try {
             const groups = Array.isArray(this.state.calibrationGroups) ? this.state.calibrationGroups : [];
@@ -641,7 +656,7 @@ class NewTaskButton extends React.Component {
 
     // 打开样方弹窗（仅多光谱，标定完成后调用）
     openQuadratModal = () => {
-        this.setState({ showQuadratModal: true, quadratFolderPath: '', quadratSize: '' }, () => {
+        this.setState({ showQuadratModal: true, quadratFolderPath: '', quadratSize: '100', quadratGeometryType: 'square' }, () => {
             console.log('样方弹窗已打开');
         });
     }
@@ -659,16 +674,17 @@ class NewTaskButton extends React.Component {
     // 跳过样方步骤，直接进入任务创建
     skipQuadratAndProceed = () => {
         console.log('[样方] 已跳过样方选择');
-        this.setState({ showQuadratModal: false, quadratFolderPath: '', quadratSize: '' }, () => {
+        this.setState({ showQuadratModal: false, quadratFolderPath: '', quadratSize: '', quadratGeometryType: 'square' }, () => {
             this.prepareTaskCreation();
         });
     }
 
     // 确认样方信息，进入任务创建
     confirmQuadratAndProceed = () => {
-        const { quadratFolderPath, quadratSize } = this.state;
+        const { quadratFolderPath, quadratSize, quadratGeometryType } = this.state;
         console.log('[样方] 样方文件夹路径:', quadratFolderPath);
-        console.log('[样方] 样方大小 (m):', quadratSize);
+        console.log('[样方] 几何类型:', quadratGeometryType);
+        console.log('[样方] 尺寸 (cm):', quadratSize);
         this.setState({ showQuadratModal: false }, () => {
             this.prepareTaskCreation();
         });
@@ -2081,14 +2097,28 @@ class NewTaskButton extends React.Component {
                     // 样方大小
                     React.createElement('div', { key: 'quadrat-size-row', style: { marginBottom: '24px' } }, [
                         React.createElement('label', {
+                            key: 'geometry-type-label',
+                            style: { display: 'block', fontWeight: 500, marginBottom: '6px' }
+                        }, '几何类型'),
+                        React.createElement('select', {
+                            key: 'geometry-type-select',
+                            className: 'form-control input-sm',
+                            value: this.state.quadratGeometryType,
+                            onChange: (e) => this.setState({ quadratGeometryType: e.target.value }),
+                            style: { width: '100%', marginBottom: '12px' }
+                        }, [
+                            React.createElement('option', { key: 'square', value: 'square' }, '方形'),
+                            React.createElement('option', { key: 'circle', value: 'circle' }, '圆形')
+                        ]),
+                        React.createElement('label', {
                             key: 'size-label',
                             style: { display: 'block', fontWeight: 500, marginBottom: '6px' }
-                        }, '样方大小 (m)'),
+                        }, '样方尺寸 (cm)'),
                         React.createElement('input', {
                             key: 'size-input',
                             type: 'number',
                             className: 'form-control input-sm',
-                            placeholder: '请输入样方边长，单位：米',
+                            placeholder: '请输入样方尺寸，单位：厘米',
                             min: '0',
                             step: '0.1',
                             value: this.state.quadratSize,

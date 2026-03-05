@@ -4,7 +4,7 @@
 window.SFPRO_CONFIG =
   window.SFPRO_CONFIG ||
   (function () {
-    const HOST = "192.168.3.249";
+    const HOST = "localhost";
     return {
       HOST,
       WEBODM_URL: "http://" + HOST + ":8000",

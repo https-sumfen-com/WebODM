@@ -138,6 +138,7 @@ class UploadTaskList extends React.Component {
                 odm_samplinge_time: task.samplingDate ? new Date(task.samplingDate).toISOString() : new Date().toISOString(),
                 odm_host: config.WEBODM_URL,
                 radiometric: task.radiometric || null,
+                sample_plot: task.samplePlot || null,
                 odm_create_at: new Date().toISOString()
             };
 
