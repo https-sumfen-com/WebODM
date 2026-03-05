@@ -1,6 +1,6 @@
 import $ from 'jquery';
-// const IP = '192.168.3.249'; // TODO: 配置IP地址
-const IP = 'localhost';
+import config from './config';
+const IP = config.HOST;
 
 // 统一的 CustomEvent 下载方法
 const downloadWithCustomEvent = (downloadUrl, options = {}) => {

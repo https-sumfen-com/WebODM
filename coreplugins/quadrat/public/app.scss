@@ -28,21 +28,163 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
 }
 .quadrat-created .quadrat-item{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2px 0;
-    label{
-        font-size: 12px;
-        color: #333;
+    padding: 4px 0;
+    
+    .quadrat-name-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        max-width: 200px;
+        overflow: hidden;
+        
+        .quadrat-name-text {
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            
+            &:hover {
+                color: #4CAF50;
+                text-decoration: underline;
+            }
+        }
+        
+        .quadrat-name-edit-input {
+            font-size: 13px;
+            padding: 2px 6px;
+            border: 1px solid #4CAF50;
+            border-radius: 3px;
+            outline: none;
+            width: 120px;
+            max-width: 180px;
+            
+            &:focus {
+                box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            }
+        }
     }
 }
-.quadrat-created .quadrat-item .actions a{
-    margin-left: 8px;
+
+.quadrat-created .quadrat-item .actions {
+    display: flex;
+    align-items: center;
+    
+    a {
+        margin-left: 6px;
+        color: #666;
+        font-size: 13px;
+        transition: color 0.2s;
+        
+        &:hover {
+            color: #333;
+        }
+        
+        &.edit:hover {
+            color: #2196F3;
+        }
+        
+        &.confirm {
+            color: #4CAF50;
+            display: none;
+            
+            &:hover {
+                color: #45a049;
+            }
+        }
+        
+        &.delete:hover {
+            color: #f44336;
+        }
+    }
 }
 
 .quadrat-control .leaflet-control-measure-toggle {
     background-image: url('./static/icon.png')!important;
+}
+
+// 样方名称输入模态框
+.quadrat-name-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.quadrat-name-modal {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .quadrat-name-input {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+        
+        &:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+    }
+    
+    .quadrat-name-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        
+        button {
+            padding: 8px 20px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            
+            &.quadrat-name-confirm {
+                background: #4CAF50;
+                color: white;
+                
+                &:hover {
+                    background: #45a049;
+                }
+            }
+            
+            &.quadrat-name-cancel {
+                background: #f1f1f1;
+                color: #333;
+                
+                &:hover {
+                    background: #e0e0e0;
+                }
+            }
+        }
+    }
 }

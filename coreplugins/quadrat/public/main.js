@@ -1,10 +1,16 @@
+// 开发模式检测
+const isDev = true
+const DEV_API_BASE = 'http://localhost:7700'
+const DEV_PROJECT_ID = 1
+const DEV_TASK_ID = 'c65bdde1-ba45-4675-a3e1-15d4d691e38d'
+
 PluginsAPI.Map.willAddControls([
     'quadrat/build/app.js',
     'quadrat/build/app.css'
 ], function(args, App){
     (async function(){
         const map = args.map
-        const apiBase = window.QUADRAT_API_BASE || 'http://localhost:7700'
+        const apiBase = isDev ? DEV_API_BASE : (window.QUADRAT_API_BASE || 'http://localhost:7700')
         var tasks = [];
         var ids = {};
         
@@ -15,15 +21,35 @@ PluginsAPI.Map.willAddControls([
                 ids[task.id] = true;
             }
         }
+        
         let project_id = null, task_id = null
-        if (tasks.length === 1){ project_id = tasks[0].project; task_id = tasks[0].id }
+        if (isDev) {
+            // 开发模式：使用固定配置
+            project_id = DEV_PROJECT_ID
+            task_id = DEV_TASK_ID
+            console.log('[DEV] Using fixed credentials:', { project_id, task_id, apiBase })
+        } else {
+            // 生产模式：从任务中获取
+            if (tasks.length === 1) {
+                project_id = tasks[0].project
+                task_id = tasks[0].id
+            }
+        }
+        
         try{
             const r = await fetch(`${apiBase}/api/odm/get_report_detail?project_id=${encodeURIComponent(project_id||'')}&task_id=${encodeURIComponent(task_id||'')}`)
             if (r.ok){
                 const data = await r.json()
-                if (data){ new App(map, tasks[0]); return }
+                if (data){ 
+                    // 注入开发配置的 task（如果在开发模式）
+                    const injectedTask = isDev ? { project: project_id, id: task_id } : (tasks[0] || null)
+                    new App(map, injectedTask)
+                    return
+                }
             }
-        }catch(e){}
+        }catch(e){
+            console.error('Quadrat plugin error:', e)
+        }
         console.warn('Quadrat plugin hidden: no report detail found')
     })()
 });

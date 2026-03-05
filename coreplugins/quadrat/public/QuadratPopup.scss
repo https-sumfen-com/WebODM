@@ -5,6 +5,71 @@
         margin: 0;
     }
 
+    .quadrat-name-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-section {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+
+    .info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 10px;
+        background: #f0f0f0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .info-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .edit-geometry-btn {
+        color: #666;
+        font-size: 13px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        transition: all 0.2s;
+
+        &:hover {
+            color: #2196F3;
+            background: rgba(33, 150, 243, 0.1);
+        }
+    }
+
+    .info-content {
+        padding: 8px 10px;
+
+        p {
+            margin: 4px 0;
+            font-size: 13px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .info-label {
+            color: #666;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #333;
+            word-break: break-all;
+        }
+    }
+
     .error.long {
         overflow: scroll;
         display: block;
@@ -28,6 +93,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        
+        .info-value {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .stats-table {
@@ -92,3 +163,57 @@ $color-divider: #ddd;
       }
     }
   }
+
+// 编辑模式的控制按钮
+.quadrat-edit-controls {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+    .btn-cancel, .btn-confirm {
+        padding: 8px 20px;
+        font-size: 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel {
+        background: #f1f1f1;
+        color: #333;
+
+        &:hover {
+            background: #e0e0e0;
+        }
+    }
+
+    .btn-confirm {
+        background: #4CAF50;
+        color: white;
+
+        &:hover {
+            background: #45a049;
+        }
+    }
+}
+
+// 编辑模式光标：多边形区域用 move，顶点用 pointer
+.quadrat-editing {
+    .leaflet-interactive {
+        cursor: move !important;
+    }
+    .leaflet-vertex-icon,
+    .leaflet-middle-icon {
+        cursor: pointer !important;
+    }
+}

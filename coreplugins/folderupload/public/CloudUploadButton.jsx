@@ -1,6 +1,7 @@
 import React from 'React';
 import $ from 'jquery';
 import CloudDownloadButton from './CloudDownloadButton';
+import config from './config';
 
 class CloudUploadButton extends React.Component {
     constructor(props) {
@@ -8,8 +9,6 @@ class CloudUploadButton extends React.Component {
         this.state = {
             uploading: false,
             showModal: false,
-            // ipConfig: '192.168.3.249', // TODO: 配置IP地址
-            ipConfig: 'localhost',
             buttonHidden: false, // 控制按钮是否隐藏
             progress: null,
             error: "",
@@ -21,7 +20,7 @@ class CloudUploadButton extends React.Component {
     ensureDeviceHeaders = async () => {
         if (this.state.deviceHeaders) return this.state.deviceHeaders;
         try{
-            const res = await fetch(`http://${this.state.ipConfig}:5000/api/devices/is-activated`);
+            const res = await fetch(`${config.DEVICE_API_URL}/api/devices/is-activated`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             const data = json && (json.data || json) || {};
@@ -63,7 +62,7 @@ class CloudUploadButton extends React.Component {
     fetchReportDetail = async (projectId, taskId) => {
         try {
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/get_report_detail`,
+                url: `${config.ODM_API_URL}/api/odm/get_report_detail`,
                 type: 'GET',
                 data: {
                     project_id: projectId,
@@ -83,7 +82,7 @@ class CloudUploadButton extends React.Component {
         try {
             await this.ensureDeviceHeaders();
             const response = await $.ajax({
-                url: `http://${this.state.ipConfig}:7700/api/odm/upload_report`,
+                url: `${config.ODM_API_URL}/api/odm/upload_report`,
                 type: 'POST',
                 contentType: 'application/json',
                 headers: this.state.deviceHeaders,

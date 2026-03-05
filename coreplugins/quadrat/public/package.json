@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "leaflet-measure-ex": "^3.0.7"
+    "leaflet-editable": "^1.2.0",
+    "leaflet-measure-ex": "^3.0.7",
+    "leaflet-path-drag": "^1.4.0"
   }
 }

@@ -1,14 +1,13 @@
 import React from 'React';
 import $ from 'jquery';
 import Workers from './Workers';
+import config from './config';
 
 class CloudDownloadButton extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             downloading: false,
-            // ipConfig: '192.168.3.249', // TODO: 配置IP地址
-            ipConfig: 'localhost',
             progress: null,
             error: ""
         };
@@ -17,19 +16,16 @@ class CloudDownloadButton extends React.Component {
     // 多光谱类型的资源文件下载
     handleMultispectralDownload = async (resourceKey, resourceItem) => {
         const { record } = this.props;
-        const { ipConfig } = this.state;
-        
         this.setState({ downloading: true });
-        
+
         try {
             // 构建下载URL，使用7700端口
-            const ip = ipConfig;
             const downUrl = `${record.output_dir}/${resourceItem.tif}`;
-            
+
             // 使用 Workers 中的统一下载方法
-            Workers.downloadWithCustomEvent(downUrl, { 
-                ip: ip, 
-                port: '7700' 
+            Workers.downloadWithCustomEvent(downUrl, {
+                ip: config.HOST,
+                port: '7700'
             });
             
         } catch (error) {
@@ -42,14 +38,12 @@ class CloudDownloadButton extends React.Component {
     // RGB下载功能 - 使用原有下载逻辑
     handleRgbDownload = () => {
         const { task } = this.props;
-        const { ipConfig } = this.state;
-        
+
         this.setState({ downloading: true, error: "", progress: null });
-        
+
         const projectId = task.project || task.projectId;
-        // TODO 测试写死
         const taskId = task.id;
-        const url = `http://${ipConfig}:8000/api/projects/${projectId}/tasks/${taskId}/orthophoto/export`;
+        const url = `${config.WEBODM_URL}/api/projects/${projectId}/tasks/${taskId}/orthophoto/export`;
         
         const data = {
             format: 'gtiff',
@@ -92,14 +86,12 @@ class CloudDownloadButton extends React.Component {
     // DSM下载功能 - 使用原有下载逻辑
     handleDsmDownload = () => {
         const { task } = this.props;
-        const { ipConfig } = this.state;
-        
+
         this.setState({ downloading: true, error: "", progress: null });
-        
+
         const projectId = task.project || task.projectId;
-        // TODO 测试写死
         const taskId = task.id;
-        const url = `http://${ipConfig}:8000/api/projects/${projectId}/tasks/${taskId}/dsm/export`;
+        const url = `${config.WEBODM_URL}/api/projects/${projectId}/tasks/${taskId}/dsm/export`;
         
         const data = {
             hillshade: '6',
