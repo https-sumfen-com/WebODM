@@ -1167,6 +1167,96 @@ class NewTaskButton extends React.Component {
     }
   };
 
+  // 手动解码热红外单波段 TIFF（float32/uint16/uint8，仅支持无压缩）
+  decodeThermalTiff = (buffer) => {
+    const view = new DataView(buffer);
+    const littleEndian = view.getUint16(0) === 0x4949; // "II" = little-endian
+    if (view.getUint16(2, littleEndian) !== 42) throw new Error("Not a valid TIFF");
+    const ifdOffset = view.getUint32(4, littleEndian);
+    const entryCount = view.getUint16(ifdOffset, littleEndian);
+    const tags = {};
+
+    const readValue = (type, count, valueOffset) => {
+      const typeSize = [0, 1, 1, 2, 4, 8][type] || 1;
+      const totalBytes = typeSize * count;
+      const off = totalBytes <= 4 ? valueOffset : view.getUint32(valueOffset, littleEndian);
+      if (count === 1) {
+        if (type === 3) return view.getUint16(off, littleEndian);
+        if (type === 4) return view.getUint32(off, littleEndian);
+        return view.getUint8(off);
+      }
+      return Array.from({ length: count }, (_, j) => {
+        if (type === 3) return view.getUint16(off + j * 2, littleEndian);
+        if (type === 4) return view.getUint32(off + j * 4, littleEndian);
+        return view.getUint8(off + j);
+      });
+    };
+
+    for (let i = 0; i < entryCount; i++) {
+      const e = ifdOffset + 2 + i * 12;
+      const tag = view.getUint16(e, littleEndian);
+      const type = view.getUint16(e + 2, littleEndian);
+      const count = view.getUint32(e + 4, littleEndian);
+      tags[tag] = readValue(type, count, e + 8);
+    }
+
+    const width = tags[256];
+    const height = tags[257];
+    const bitsPerSample = Array.isArray(tags[258]) ? tags[258][0] : (tags[258] || 8);
+    const compression = tags[259] || 1;
+    const sampleFormat = Array.isArray(tags[339]) ? tags[339][0] : (tags[339] || 1);
+    const stripOffsets = Array.isArray(tags[273]) ? tags[273] : [tags[273]];
+    const stripByteCounts = Array.isArray(tags[279]) ? tags[279] : [tags[279]];
+
+    if (compression !== 1) throw new Error("Unsupported TIFF compression: " + compression);
+
+    const bytesPerSample = bitsPerSample / 8;
+    const totalPixels = width * height;
+    const pixelData = new Float64Array(totalPixels);
+    let idx = 0;
+
+    for (let s = 0; s < stripOffsets.length; s++) {
+      const offset = stripOffsets[s];
+      const pixelsInStrip = Math.floor(stripByteCounts[s] / bytesPerSample);
+      for (let p = 0; p < pixelsInStrip && idx < totalPixels; p++, idx++) {
+        const byteOff = offset + p * bytesPerSample;
+        if (bitsPerSample === 32 && sampleFormat === 3) {
+          pixelData[idx] = view.getFloat32(byteOff, littleEndian);
+        } else if (bitsPerSample === 16) {
+          pixelData[idx] = view.getUint16(byteOff, littleEndian);
+        } else {
+          pixelData[idx] = view.getUint8(byteOff);
+        }
+      }
+    }
+
+    // 归一化到 0-255 灰度
+    let min = Infinity, max = -Infinity;
+    for (let i = 0; i < pixelData.length; i++) {
+      const v = pixelData[i];
+      if (isFinite(v) && !isNaN(v)) {
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+    }
+    const range = max - min || 1;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    const imgData = ctx.createImageData(width, height);
+    for (let i = 0; i < totalPixels; i++) {
+      const norm = Math.round(((pixelData[i] - min) / range) * 255);
+      imgData.data[i * 4] = norm;
+      imgData.data[i * 4 + 1] = norm;
+      imgData.data[i * 4 + 2] = norm;
+      imgData.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return canvas.toDataURL("image/png");
+  };
+
   // 使用 tiff.js 将 tif 转为 base64 并更新 state（支持关闭弹窗时的取消）
   loadTiffToDataUrl = (path) => {
     try {
@@ -1195,8 +1285,13 @@ class NewTaskButton extends React.Component {
           return;
         }
         try {
-          const tiff = new TiffLib({ buffer: xhr.response });
-          const dataUrl = tiff.toDataURL();
+          let dataUrl;
+          if (this.isThermalCalibration()) {
+            dataUrl = this.decodeThermalTiff(xhr.response);
+          } else {
+            const tiff = new TiffLib({ buffer: xhr.response });
+            dataUrl = tiff.toDataURL();
+          }
           try {
             this._activeXhrs.delete(xhr);
           } catch (_) {}
@@ -1311,8 +1406,13 @@ class NewTaskButton extends React.Component {
             return resolve(false);
           }
           try {
-            const tiff = new TiffLib({ buffer: xhr.response });
-            const dataUrl = tiff.toDataURL();
+            let dataUrl;
+            if (this.isThermalCalibration()) {
+              dataUrl = this.decodeThermalTiff(xhr.response);
+            } else {
+              const tiff = new TiffLib({ buffer: xhr.response });
+              dataUrl = tiff.toDataURL();
+            }
             cache[url] = dataUrl;
             try {
               this._activeXhrs.delete(xhr);

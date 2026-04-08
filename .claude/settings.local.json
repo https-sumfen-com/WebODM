@@ -40,7 +40,8 @@
       "Bash(wsl.exe -e bash -c \"find /mnt/e/SFPRO/ODM/WebODM -name ''webpack.config.js'' -not -path ''*/node_modules/*'' 2>/dev/null | cat\")",
       "Bash(wsl.exe -e bash -c \"docker logs webapp 2>&1 | cat | grep -a ''Congratulations\\\\|WebODM should be\\\\|localhost:8000\\\\|folderupload\\\\|watch.*plugin\\\\|ERROR''\")",
       "Bash(wsl.exe -e bash -c \"docker logs --tail 5 webapp 2>&1 | strings | cat\")",
-      "Bash(wsl.exe -e bash -c \"docker logs --tail 10 webapp 2>&1 | strings | cat\")"
+      "Bash(wsl.exe -e bash -c \"docker logs --tail 10 webapp 2>&1 | strings | cat\")",
+      "Bash(cmd:*)"
     ]
   }
 }
