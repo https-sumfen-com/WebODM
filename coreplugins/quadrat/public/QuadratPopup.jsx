@@ -1,195 +1,274 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import './QuadratPopup.scss'
-import Utils from 'webodm/classes/Utils'
-import { _, interpolate } from 'webodm/classes/gettext'
-import { systems, unitSystem, getUnitSystem } from 'webodm/classes/Units'
-import $ from 'jquery'
-import L from 'leaflet'
+import React from "react";
+import PropTypes from "prop-types";
+import "./QuadratPopup.scss";
+import Utils from "webodm/classes/Utils";
+import { _, interpolate } from "webodm/classes/gettext";
+import { systems, unitSystem, getUnitSystem } from "webodm/classes/Units";
+import $ from "jquery";
+import L from "leaflet";
 
 export default class QuadratPopup extends React.Component {
-  static defaultProps = { map: {}, model: {}, resultFeature: {}, onEditGeometry: null }
-  static propTypes = { 
-    map: PropTypes.object.isRequired, 
-    model: PropTypes.object.isRequired, 
+  static defaultProps = {
+    map: {},
+    model: {},
+    resultFeature: {},
+    onEditGeometry: null,
+  };
+  static propTypes = {
+    map: PropTypes.object.isRequired,
+    model: PropTypes.object.isRequired,
     resultFeature: PropTypes.object.isRequired,
-    onEditGeometry: PropTypes.func 
-  }
+    onEditGeometry: PropTypes.func,
+  };
 
   constructor(props) {
-    super(props)
-    let featureType = 'Point'
-    if (props.model.area !== 0) featureType = 'Polygon'
-    else if (props.model.length > 0) featureType = 'LineString'
-    this.state = { featureType, error: '' }
-    this.exportMeasurement = this.exportMeasurement.bind(this)
-    this.getProperties = this.getProperties.bind(this)
-    this.getGeoJSON = this.getGeoJSON.bind(this)
-    this.showTooltip = this.showTooltip.bind(this)
-    this.hideTooltip = this.hideTooltip.bind(this)
-    this.handleEditGeometry = this.handleEditGeometry.bind(this)
+    super(props);
+    let featureType = "Point";
+    if (props.model.area !== 0) featureType = "Polygon";
+    else if (props.model.length > 0) featureType = "LineString";
+    this.state = { featureType, error: "" };
+    this.exportMeasurement = this.exportMeasurement.bind(this);
+    this.getProperties = this.getProperties.bind(this);
+    this.getGeoJSON = this.getGeoJSON.bind(this);
+    this.showTooltip = this.showTooltip.bind(this);
+    this.hideTooltip = this.hideTooltip.bind(this);
+    this.handleEditGeometry = this.handleEditGeometry.bind(this);
   }
 
   componentDidMount() {
-    this.props.resultFeature._measurePopup = this
+    this.props.resultFeature._measurePopup = this;
   }
 
   componentWillUnmount() {
-    this.props.resultFeature._measurePopup = null
-    if (this.pollTimer) clearInterval(this.pollTimer)
+    this.props.resultFeature._measurePopup = null;
+    if (this.pollTimer) clearInterval(this.pollTimer);
   }
 
   getProperties() {
-    const us = systems[this.lastUnitSystem]
-    const base = { Length: us.length(this.props.model.length).value, Area: us.area(this.props.model.area).value }
-    const qp = this.props.resultFeature._quadratProps || {}
-    if (qp.vertices) base.Vertices = qp.vertices
-    if (qp.centroid) base.Centroid = qp.centroid
-    if (!base.Vertices || !base.Centroid){
-      const gj = this.props.resultFeature.toGeoJSON(14)
-      const coords = (gj.geometry && gj.geometry.coordinates && gj.geometry.coordinates[0]) ? gj.geometry.coordinates[0] : []
-      const closed = coords.length && coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1]
-      const verts = closed ? coords.slice(0, -1) : coords
-      const vertices = verts.map(v => ({ lon: v[0], lat: v[1] }))
-      base.Vertices = vertices
+    const us = systems[this.lastUnitSystem];
+    const base = {
+      Length: us.length(this.props.model.length).value,
+      Area: us.area(this.props.model.area).value,
+    };
+    const qp = this.props.resultFeature._quadratProps || {};
+    if (qp.vertices) base.Vertices = qp.vertices;
+    if (qp.centroid) base.Centroid = qp.centroid;
+    if (!base.Vertices || !base.Centroid) {
+      const gj = this.props.resultFeature.toGeoJSON(14);
+      const coords =
+        gj.geometry && gj.geometry.coordinates && gj.geometry.coordinates[0]
+          ? gj.geometry.coordinates[0]
+          : [];
+      const closed =
+        coords.length &&
+        coords[0][0] === coords[coords.length - 1][0] &&
+        coords[0][1] === coords[coords.length - 1][1];
+      const verts = closed ? coords.slice(0, -1) : coords;
+      const vertices = verts.map((v) => ({ lon: v[0], lat: v[1] }));
+      base.Vertices = vertices;
       if (vertices.length) {
-        const cx = vertices.reduce((s, v) => s + v.lon, 0) / vertices.length
-        const cy = vertices.reduce((s, v) => s + v.lat, 0) / vertices.length
-        base.Centroid = { lon: cx, lat: cy }
+        const cx = vertices.reduce((s, v) => s + v.lon, 0) / vertices.length;
+        const cy = vertices.reduce((s, v) => s + v.lat, 0) / vertices.length;
+        base.Centroid = { lon: cx, lat: cy };
       } else {
-        base.Centroid = { lon: null, lat: null }
+        base.Centroid = { lon: null, lat: null };
       }
     }
-    base.Reflectance = qp.reflectance || { Red: {}, Green: {}, Blue: {}, RE: {}, NIR: {} }
-    base.Indices = qp.indices || { NDVI: {}, GNDVI: {}, NDRE: {} }
-    base.UnitSystem = this.lastUnitSystem
-    return base
+    base.Reflectance = qp.reflectance || {
+      Red: {},
+      Green: {},
+      Blue: {},
+      RE: {},
+      NIR: {},
+    };
+    base.Indices = qp.indices || { NDVI: {}, GNDVI: {}, NDRE: {} };
+    base.UnitSystem = this.lastUnitSystem;
+    return base;
   }
 
   getGeoJSON() {
-    const geoJSON = this.props.resultFeature.toGeoJSON(14)
-    geoJSON.properties = this.getProperties()
-    return geoJSON
+    const geoJSON = this.props.resultFeature.toGeoJSON(14);
+    geoJSON.properties = this.getProperties();
+    return geoJSON;
   }
 
   exportMeasurement() {
-    const geoJSON = { type: 'FeatureCollection', features: [this.getGeoJSON()] }
-    Utils.saveAs(JSON.stringify(geoJSON, null, 4), 'quadrat.geojson')
+    const geoJSON = {
+      type: "FeatureCollection",
+      features: [this.getGeoJSON()],
+    };
+    Utils.saveAs(JSON.stringify(geoJSON, null, 4), "quadrat.geojson");
   }
 
   handleEditGeometry() {
     if (this.props.onEditGeometry) {
-      this.props.onEditGeometry()
+      this.props.onEditGeometry();
     }
   }
 
   render() {
-    const { error, featureType } = this.state
-    const us = unitSystem()
-    this.lastUnitSystem = getUnitSystem()
-    const stats = this.props.resultFeature._quadratProps || null
-    const vertices = stats && stats.vertices ? stats.vertices : []
-    const centroid = stats && stats.centroid ? stats.centroid : {}
-    const reflectance = stats && stats.reflectance ? stats.reflectance : {}
-    const indices = stats && stats.indices ? stats.indices : {}
-    const quadratName = stats && stats.raw && stats.raw.name ? stats.raw.name : ''
-    const quadratId = stats && stats.raw && stats.raw.id ? stats.raw.id : null
-    const verticesText = vertices.map(v => `${v.lon},${v.lat}`).join(' | ')
-    
-    return (<div className="plugin-quadrat popup">
-      {quadratName && <p className="quadrat-name-title"><strong>{_('样方名称:')}</strong> {quadratName}</p>}
-      
-      {featureType == 'Polygon' && (
-        <div className="info-section">
-          <div className="info-header">
-            <span className="info-title">{_('基本信息')}</span>
-            {quadratId && (
-              <a href="#" className="edit-geometry-btn" onClick={(e) => { e.preventDefault(); this.handleEditGeometry(); }} title={_('编辑样方范围')}>
-                <i className="fa fa-edit"></i>
-              </a>
-            )}
+    const { error, featureType } = this.state;
+    const us = unitSystem();
+    this.lastUnitSystem = getUnitSystem();
+    const stats = this.props.resultFeature._quadratProps || null;
+    const vertices = stats && stats.vertices ? stats.vertices : [];
+    const centroid = stats && stats.centroid ? stats.centroid : {};
+    const reflectance = stats && stats.reflectance ? stats.reflectance : {};
+    const indices = stats && stats.indices ? stats.indices : {};
+    const quadratName =
+      stats && stats.raw && stats.raw.sort_no ? stats.raw.sort_no : "";
+    const quadratId = stats && stats.raw && stats.raw.id ? stats.raw.id : null;
+    const verticesText = vertices.map((v) => `${v.lon},${v.lat}`).join(" | ");
+
+    return (
+      <div className="plugin-quadrat popup">
+        {quadratName && (
+          <p className="quadrat-name-title">
+            <strong>{_("样方名称:")}</strong> {quadratName}
+          </p>
+        )}
+
+        {featureType == "Polygon" && (
+          <div className="info-section">
+            <div className="info-header">
+              <span className="info-title">{_("基本信息")}</span>
+              {quadratId && (
+                <a
+                  href="#"
+                  className="edit-geometry-btn"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    this.handleEditGeometry();
+                  }}
+                  title={_("编辑样方范围")}
+                >
+                  <i className="fa fa-edit"></i>
+                </a>
+              )}
+            </div>
+            <div className="info-content">
+              <p>
+                <span className="info-label">{_("周长:")}</span>{" "}
+                <span className="info-value">
+                  {this.props.model.lengthDisplay}
+                </span>
+              </p>
+              <p>
+                <span className="info-label">{_("面积:")}</span>{" "}
+                <span className="info-value">
+                  {this.props.model.areaDisplay}
+                </span>
+              </p>
+              <p
+                className="vertices-line"
+                onMouseEnter={(e) => this.showTooltip(e, verticesText)}
+                onMouseLeave={this.hideTooltip}
+              >
+                <span className="info-label">{_("样方坐标:")}</span>{" "}
+                <span className="info-value">{verticesText}</span>
+              </p>
+              <p>
+                <span className="info-label">{_("中心点坐标:")}</span>{" "}
+                <span className="info-value">
+                  {centroid.lon !== undefined && centroid.lat !== undefined
+                    ? `${centroid.lon},${centroid.lat}`
+                    : ""}
+                </span>
+              </p>
+            </div>
           </div>
-          <div className="info-content">
-            <p><span className="info-label">{_('周长:')}</span> <span className="info-value">{this.props.model.lengthDisplay}</span></p>
-            <p><span className="info-label">{_('面积:')}</span> <span className="info-value">{this.props.model.areaDisplay}</span></p>
-            <p className="vertices-line" onMouseEnter={(e) => this.showTooltip(e, verticesText)} onMouseLeave={this.hideTooltip}>
-              <span className="info-label">{_('样方坐标:')}</span> <span className="info-value">{verticesText}</span>
-            </p>
-            <p><span className="info-label">{_('中心点坐标:')}</span> <span className="info-value">{(centroid.lon !== undefined && centroid.lat !== undefined) ? `${centroid.lon},${centroid.lat}` : ''}</span></p>
-          </div>
-        </div>
-      )}
-      
-      {featureType == 'Polygon' && !stats && !error && <p>{_('分析:')} <i>{_('计算中…')}</i> <i className="fa fa-cog fa-spin fa-fw" /></p>}
-      {stats ? [
-        <div className="table-block" key="tables">
-          <p>{_('反射率统计:')}</p>
-          <table className="stats-table">
-            <thead>
-              <tr>
-                <th>{_('波段')}</th>
-                <th>min</th>
-                <th>max</th>
-                <th>mean</th>
-                <th>std</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(reflectance).map(k => (
-                <tr key={k}>
-                  <td>{k}</td>
-                  <td>{reflectance[k].min}</td>
-                  <td>{reflectance[k].max}</td>
-                  <td>{reflectance[k].mean}</td>
-                  <td>{reflectance[k].std}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p>{_('光谱指数统计:')}</p>
-          <table className="stats-table">
-            <thead>
-              <tr>
-                <th>{_('指数')}</th>
-                <th>min</th>
-                <th>max</th>
-                <th>mean</th>
-                <th>std</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(indices).map(k => (
-                <tr key={k}>
-                  <td>{k}</td>
-                  <td>{indices[k].min}</td>
-                  <td>{indices[k].max}</td>
-                  <td>{indices[k].mean}</td>
-                  <td>{indices[k].std}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ] : ''}
-      {error && <p>{_('分析:')} <span className={'error theme-background-failed ' + (String(error).length > 200 ? 'long' : '')}>{String(error)}</span></p>}
-    </div>)
+        )}
+
+        {featureType == "Polygon" && !stats && !error && (
+          <p>
+            {_("分析:")} <i>{_("计算中…")}</i>{" "}
+            <i className="fa fa-cog fa-spin fa-fw" />
+          </p>
+        )}
+        {stats
+          ? [
+              <div className="table-block" key="tables">
+                <p>{_("反射率统计:")}</p>
+                <table className="stats-table">
+                  <thead>
+                    <tr>
+                      <th>{_("波段")}</th>
+                      <th>min</th>
+                      <th>max</th>
+                      <th>mean</th>
+                      <th>std</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(reflectance).map((k) => (
+                      <tr key={k}>
+                        <td>{k}</td>
+                        <td>{reflectance[k].min}</td>
+                        <td>{reflectance[k].max}</td>
+                        <td>{reflectance[k].mean}</td>
+                        <td>{reflectance[k].std}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p>{_("光谱指数统计:")}</p>
+                <table className="stats-table">
+                  <thead>
+                    <tr>
+                      <th>{_("指数")}</th>
+                      <th>min</th>
+                      <th>max</th>
+                      <th>mean</th>
+                      <th>std</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(indices).map((k) => (
+                      <tr key={k}>
+                        <td>{k}</td>
+                        <td>{indices[k].min}</td>
+                        <td>{indices[k].max}</td>
+                        <td>{indices[k].mean}</td>
+                        <td>{indices[k].std}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>,
+            ]
+          : ""}
+        {error && (
+          <p>
+            {_("分析:")}{" "}
+            <span
+              className={
+                "error theme-background-failed " +
+                (String(error).length > 200 ? "long" : "")
+              }
+            >
+              {String(error)}
+            </span>
+          </p>
+        )}
+      </div>
+    );
   }
 
   showTooltip(e, text) {
-    if (!text) return
-    const rect = e.currentTarget.getBoundingClientRect()
+    if (!text) return;
+    const rect = e.currentTarget.getBoundingClientRect();
     if (!this.tooltipEl) {
-      this.tooltipEl = document.createElement('div')
-      this.tooltipEl.className = 'quad-tooltip'
-      document.body.appendChild(this.tooltipEl)
+      this.tooltipEl = document.createElement("div");
+      this.tooltipEl.className = "quad-tooltip";
+      document.body.appendChild(this.tooltipEl);
     }
-    this.tooltipEl.textContent = text
-    this.tooltipEl.style.left = `${Math.round(rect.left)}px`
-    this.tooltipEl.style.top = `${Math.round(rect.bottom + 6)}px`
-    this.tooltipEl.style.display = 'block'
+    this.tooltipEl.textContent = text;
+    this.tooltipEl.style.left = `${Math.round(rect.left)}px`;
+    this.tooltipEl.style.top = `${Math.round(rect.bottom + 6)}px`;
+    this.tooltipEl.style.display = "block";
   }
 
   hideTooltip() {
-    if (this.tooltipEl) this.tooltipEl.style.display = 'none'
+    if (this.tooltipEl) this.tooltipEl.style.display = "none";
   }
 }

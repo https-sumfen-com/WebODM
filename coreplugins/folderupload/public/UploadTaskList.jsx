@@ -133,7 +133,7 @@ class UploadTaskList extends React.Component {
                 odm_project_id: task.projectId,
                 odm_task_id: webodmTaskResponse ? webodmTaskResponse.id.toString() : task.id.toString(),
                 odm_job_name: task.name,
-                odm_job_type: task.type === 'rgb' ? 'rgb' : 'multispectral',
+                odm_job_type: task.type,
                 odm_src_folder: task.folderPath,
                 odm_samplinge_time: task.samplingDate ? new Date(task.samplingDate).toISOString() : new Date().toISOString(),
                 odm_host: config.WEBODM_URL,
@@ -802,7 +802,7 @@ class UploadTaskList extends React.Component {
                                     key: 'details',
                                     style: { fontSize: '11px', color: '#666' }
                                 }, mainTab === 'local' ? [
-                                    `${task.type === 'rgb' ? 'RGB' : '多光谱'} • ${task.totalCount} 文件`,
+                                    `${task.type === 'rgb' ? 'RGB' : task.type === 'thermal-infrared' ? '热红外' : '多光谱'} • ${task.totalCount} 文件`,
                                     task.createdTime ? ` • ${this.formatDateTime(task.createdTime)}` : ''
                                 ].join('') : [
                                     `${task.type.toUpperCase()} • 面积: ${task.areaMu ? task.areaMu.toFixed(2) + '亩' : '未知'}`,
