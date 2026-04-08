@@ -150,6 +150,7 @@ export default class App {
           if (!resultFeature._quadratProps.raw)
             resultFeature._quadratProps.raw = {};
           resultFeature._quadratProps.raw.sort_no = name;
+          resultFeature._quadratProps.raw.name = name;
 
           // 渲染弹窗
           this.renderQuadratPopup(
@@ -660,9 +661,10 @@ export default class App {
               mp.props.resultFeature._quadratProps.raw) ||
             {};
           const sort_no = raw.sort_no || "";
+          const name = raw.name || "";
           items.push({
             layer,
-            payload: { idx, coords: vertices, center: [cx, cy], sort_no },
+            payload: { idx, coords: vertices, center: [cx, cy], sort_no, name },
           });
         }
       }
@@ -1099,6 +1101,7 @@ export default class App {
         mp.props.resultFeature._quadratProps.raw = {};
       }
       mp.props.resultFeature._quadratProps.raw.sort_no = newName;
+      mp.props.resultFeature._quadratProps.raw.name = newName;
     }
 
     // 全量提交到后端（与新增一致）
