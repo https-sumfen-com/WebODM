@@ -1,7 +1,7 @@
 // ============================================================
 // 统一 IP / 端口配置 —— 修改 HOST 即可切换所有地址
 // ============================================================
-const isDev = false;
+let isDev = false;
 window.SFPRO_CONFIG =
   window.SFPRO_CONFIG ||
   (function () {

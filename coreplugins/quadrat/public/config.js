@@ -1,4 +1,4 @@
-const isDev = false;
+let isDev = false;
 
 const DEV_CONFIG = {
   API_BASE: "http://192.168.3.249:7700",
