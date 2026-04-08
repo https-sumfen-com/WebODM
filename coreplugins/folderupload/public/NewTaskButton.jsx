@@ -910,6 +910,7 @@ class NewTaskButton extends React.Component {
       const RAW_BASE = `${config.RAW_API_URL}/api/raw/`;
       const groupsMap = {};
       const isThermal = this.isThermalCalibration();
+      console.log("[parseTifGroups] selectedTypes:", this.state.selectedTypes, "isThermal:", isThermal);
       (items || []).forEach((it) => {
         let name = null;
         let path = null;
@@ -922,8 +923,9 @@ class NewTaskButton extends React.Component {
         }
         if (!name || !/\.tif$/i.test(name)) return;
         if (isThermal) {
-          // 热红外：匹配 _T.TIF 结尾的文件
-          const m = name.match(/^(DJI_\d{14}_\d{4})_T\.TIF$/i);
+          // 热红外：匹配 _T.TIF 结尾的文件，前缀作为分组id
+          const m = name.match(/^(.+)_T\.TIF$/i);
+          console.log("[Thermal] 文件名:", name, "匹配结果:", m);
           if (m) {
             const gid = m[1];
             if (!groupsMap[gid]) groupsMap[gid] = { groupId: gid, files: {} };
