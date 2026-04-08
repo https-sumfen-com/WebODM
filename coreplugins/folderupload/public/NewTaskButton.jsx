@@ -890,6 +890,17 @@ class NewTaskButton extends React.Component {
     });
   };
 
+  // 是否为纯热红外标定模式
+  isThermalCalibration = () => {
+    const types = this.state.selectedTypes || [];
+    return types.includes("thermal-infrared") && !types.includes("multispectral");
+  };
+
+  // 当前标定通道列表
+  getCalibrationBands = () => {
+    return this.isThermalCalibration() ? ["T"] : ["G", "R", "RE", "NIR"];
+  };
+
   // 解析TIF分组，支持两种输入：
   // 1) 字符串数组（文件名）
   // 2) 对象数组（{ name, path, extension, ... }），并可传入 auth
@@ -898,6 +909,7 @@ class NewTaskButton extends React.Component {
       this._cancelOps = false;
       const RAW_BASE = `${config.RAW_API_URL}/api/raw/`;
       const groupsMap = {};
+      const isThermal = this.isThermalCalibration();
       (items || []).forEach((it) => {
         let name = null;
         let path = null;
@@ -909,24 +921,32 @@ class NewTaskButton extends React.Component {
           path = it.path;
         }
         if (!name || !/\.tif$/i.test(name)) return;
-        const m = name.match(/^(DJI_\d{14}_\d{4})_MS_(G|NIR|R|RE)\.TIF$/i);
-        if (m) {
-          const gid = m[1];
-          const band = m[2].toUpperCase();
-          if (!groupsMap[gid]) groupsMap[gid] = { groupId: gid, files: {} };
-          const url = RAW_BASE + path + (auth ? "?auth=" + auth : "");
-          groupsMap[gid].files[band] = url;
+        if (isThermal) {
+          // 热红外：匹配 _T.TIF 结尾的文件
+          const m = name.match(/^(DJI_\d{14}_\d{4})_T\.TIF$/i);
+          if (m) {
+            const gid = m[1];
+            if (!groupsMap[gid]) groupsMap[gid] = { groupId: gid, files: {} };
+            const url = RAW_BASE + path + (auth ? "?auth=" + auth : "");
+            groupsMap[gid].files["T"] = url;
+          }
+        } else {
+          // 多光谱：匹配 _MS_(G|NIR|R|RE).TIF
+          const m = name.match(/^(DJI_\d{14}_\d{4})_MS_(G|NIR|R|RE)\.TIF$/i);
+          if (m) {
+            const gid = m[1];
+            const band = m[2].toUpperCase();
+            if (!groupsMap[gid]) groupsMap[gid] = { groupId: gid, files: {} };
+            const url = RAW_BASE + path + (auth ? "?auth=" + auth : "");
+            groupsMap[gid].files[band] = url;
+          }
         }
       });
       const groups = Object.values(groupsMap);
       const calibVals = {};
+      const defaultBands = isThermal ? { T: "" } : { G: "", R: "", RE: "", NIR: "" };
       groups.forEach((g) => {
-        calibVals[g.groupId] = calibVals[g.groupId] || {
-          G: "",
-          R: "",
-          RE: "",
-          NIR: "",
-        };
+        calibVals[g.groupId] = calibVals[g.groupId] || { ...defaultBands };
       });
       this.setState({
         calibrationGroups: groups,
@@ -1356,7 +1376,7 @@ class NewTaskButton extends React.Component {
       const currentSel = this.state.currentCalibrationSelection || {};
       if (!currentSel.groupId && groups && groups.length > 0) {
         const firstGroup = groups[0];
-        const bandOrder = ["G", "R", "RE", "NIR"];
+        const bandOrder = this.getCalibrationBands();
         let band = null;
         if (firstGroup.files) {
           // 按固定顺序优先选择
@@ -1687,7 +1707,7 @@ class NewTaskButton extends React.Component {
     const groups = this.state.calibrationGroups || [];
     const errors = {};
     let hasError = false;
-    const bands = ["G", "R", "RE", "NIR"];
+    const bands = this.getCalibrationBands();
     const values = this.state.calibrationValues || {};
     const polygons = this.state.channelPolygons || {};
     groups.forEach((g) => {
@@ -1733,7 +1753,7 @@ class NewTaskButton extends React.Component {
     const groups = this.state.calibrationGroups || [];
     const values = this.state.calibrationValues || {};
     const polygons = this.state.channelPolygons || {};
-    const bands = ["G", "R", "RE", "NIR"];
+    const bands = this.getCalibrationBands();
 
     // 构建需要远程校验的 ITEM 列表（仅当本地校验通过时才发送）
     const requests = [];
@@ -2532,7 +2552,7 @@ class NewTaskButton extends React.Component {
                                     "未检测到可用分组（需选择含TIF的文件夹）",
                                   ),
                                 ];
-                              const bands = ["G", "R", "RE", "NIR"];
+                              const bands = this.getCalibrationBands();
                               return bands.map((band) => {
                                 const selected =
                                   this.state.currentCalibrationSelection &&
@@ -2542,13 +2562,15 @@ class NewTaskButton extends React.Component {
                                     .band === band;
                                 const imgUrl = g.files && g.files[band];
                                 const label =
-                                  band === "G"
-                                    ? "绿"
-                                    : band === "R"
-                                      ? "红"
-                                      : band === "RE"
-                                        ? "红边"
-                                        : "近红外";
+                                  band === "T"
+                                    ? "温度"
+                                    : band === "G"
+                                      ? "绿"
+                                      : band === "R"
+                                        ? "红"
+                                        : band === "RE"
+                                          ? "红边"
+                                          : "近红外";
                                 return React.createElement(
                                   "div",
                                   {
