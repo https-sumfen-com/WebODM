@@ -2,9 +2,9 @@
 // 统一 IP / 端口配置
 // 只需修改 HOST，所有服务地址随之变更
 // ============================================================
-let isDev = false;
+let isDev_1 = false;
 
-const HOST = isDev ? "192.168.3.249" : "localhost";
+const HOST = isDev_1 ? "192.168.3.249" : "localhost";
 
 export default {
   HOST,
