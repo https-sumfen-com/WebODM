@@ -108,6 +108,49 @@
     }
 }
 
+// 样方名称气泡 marker
+.quadrat-name-bubble {
+    background: none !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .quadrat-name-bubble-inner {
+        position: relative;
+        background: #9915a7;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        padding: 3px 7px;
+        border-radius: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 56px;
+        max-height: 22px;
+        text-align: center;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        user-select: none;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #9915a7;
+        }
+    }
+}
+
 .quadrat-control .leaflet-control-measure-toggle {
     background-image: url('./static/icon.png')!important;
 }

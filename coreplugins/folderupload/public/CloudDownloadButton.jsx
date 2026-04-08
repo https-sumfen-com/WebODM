@@ -144,6 +144,7 @@ class CloudDownloadButton extends React.Component {
         // 判断作业类型
         const isRgbType = record?.job?.odm_job_type === 'rgb';
         const isMultispectralType = record?.job?.odm_job_type === 'multispectral';
+        const isThermalType = record?.job?.odm_job_type === 'thermal-infrared';
         const resourceFiles = record?.resource_files || {};
         
         // 判断是否有DSM资源
@@ -190,7 +191,7 @@ class CloudDownloadButton extends React.Component {
                             </li>
                         )}
                         
-                        {isMultispectralType && Object.keys(resourceFiles).map(resourceKey => {
+                        {(isMultispectralType || isThermalType) && Object.keys(resourceFiles).map(resourceKey => {
                             const resourceItem = resourceFiles[resourceKey];
                             if (resourceItem.tif) {
                                 return (
@@ -207,7 +208,7 @@ class CloudDownloadButton extends React.Component {
                             return null;
                         })}
                         
-                        {isMultispectralType && hasDsm && (
+                        {(isMultispectralType || isThermalType) && hasDsm && (
                             <li>
                                 <a href="#" onClick={(e) => {
                                     e.preventDefault();
@@ -218,7 +219,7 @@ class CloudDownloadButton extends React.Component {
                             </li>
                         )}
                         
-                        {!isRgbType && !isMultispectralType && (
+                        {!isRgbType && !isMultispectralType && !isThermalType && (
                             <li>
                                 <a href="#" className="disabled">
                                     暂无可下载内容

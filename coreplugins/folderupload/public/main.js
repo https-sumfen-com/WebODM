@@ -1,10 +1,11 @@
 // ============================================================
 // 统一 IP / 端口配置 —— 修改 HOST 即可切换所有地址
 // ============================================================
+const isDev = false;
 window.SFPRO_CONFIG =
   window.SFPRO_CONFIG ||
   (function () {
-    const HOST = "localhost";
+    const HOST = isDev ? "192.168.3.249" : "localhost";
     return {
       HOST,
       WEBODM_URL: "http://" + HOST + ":8000",
