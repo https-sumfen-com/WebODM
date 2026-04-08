@@ -1,5 +1,5 @@
 // 开发模式检测
-const isDev = false;
+let isDev = false;
 const DEV_API_BASE = "http://192.168.3.249:7700";
 const DEV_PROJECT_ID = 2;
 const DEV_TASK_ID = "271ad056-716e-4a81-a75d-be6ba1904818";
