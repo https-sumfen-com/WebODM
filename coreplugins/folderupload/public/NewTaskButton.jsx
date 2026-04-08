@@ -956,7 +956,11 @@ class NewTaskButton extends React.Component {
       const pv = values && values[groupId] ? values[groupId][band] : "";
       const num = pv === "" ? NaN : Number(pv);
       const valMissing = pv === "" || pv === undefined || pv === null;
-      const valInvalid = !isFinite(num) || num < 0 || num > 1;
+      const isThermal = (this.state.selectedTypes || []).includes("thermal-infrared") &&
+        !(this.state.selectedTypes || []).includes("multispectral");
+      const valInvalid = isThermal
+        ? !isFinite(num) || num < -40 || num > 150
+        : !isFinite(num) || num < 0 || num > 1;
       const key = `${groupId}_${band}`;
       const coords =
         overrideCoords !== undefined
@@ -1743,7 +1747,11 @@ class NewTaskButton extends React.Component {
         const pv = values[g.groupId] ? values[g.groupId][band] : "";
         const num = pv === "" ? NaN : Number(pv);
         const valMissing = pv === "" || pv === undefined || pv === null;
-        const valInvalid = !isFinite(num) || num < 0 || num > 1;
+        const isThermal = (this.state.selectedTypes || []).includes("thermal-infrared") &&
+          !(this.state.selectedTypes || []).includes("multispectral");
+        const valInvalid = isThermal
+          ? !isFinite(num) || num < -40 || num > 150
+          : !isFinite(num) || num < 0 || num > 1;
         const polyMissing = !Array.isArray(coords) || coords.length < 3;
         if (!valMissing && !valInvalid && !polyMissing) {
           const picture =
@@ -2619,10 +2627,10 @@ class NewTaskButton extends React.Component {
                                         React.createElement("input", {
                                           key: "input",
                                           type: "number",
-                                          step: "0.01",
-                                          min: "0",
-                                          max: "1",
-                                          placeholder: "反射率系数",
+                                          step: (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral")) ? "1" : "0.01",
+                                          min: (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral")) ? "-40" : "0",
+                                          max: (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral")) ? "150" : "1",
+                                          placeholder: (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral")) ? "温度值(°C)" : "反射率系数",
                                           value:
                                             (this.state.calibrationValues[
                                               g.groupId
@@ -2689,8 +2697,8 @@ class NewTaskButton extends React.Component {
                                               this.state.calibrationErrors[
                                                 g.groupId
                                               ][band].valMissing
-                                                ? "请填写反射率系数"
-                                                : "反射率取值需在0-1之间",
+                                                ? (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral") ? "请填写温度值" : "请填写反射率系数")
+                                                : (selectedTypes.includes("thermal-infrared") && !selectedTypes.includes("multispectral") ? "温度取值需在-40~150°C之间" : "反射率取值需在0-1之间"),
                                             )
                                           : null,
                                         // 错误提示：多边形
