@@ -4,7 +4,7 @@
 // ============================================================
 let isDev_1 = false;
 
-const HOST = isDev_1 ? "192.168.3.249" : "localhost";
+const HOST = isDev_1 ? "192.168.3.249" : window.location.hostname;
 
 export default {
   HOST,

@@ -11,7 +11,7 @@ PluginsAPI.Map.willAddControls(
       const map = args.map;
       const apiBase = isDev
         ? DEV_API_BASE
-        : window.QUADRAT_API_BASE || "http://localhost:7700";
+        : window.QUADRAT_API_BASE || `http://${window.location.hostname}:7700`;
       var tasks = [];
       var ids = {};
 

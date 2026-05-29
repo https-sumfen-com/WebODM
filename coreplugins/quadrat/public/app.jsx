@@ -18,7 +18,7 @@ export default class App {
     this.map = map;
     this.injectedTask = injectedTask || null;
     this.apiBase =
-      config.API_BASE || window.QUADRAT_API_BASE || "http://localhost:7700";
+      config.API_BASE || window.QUADRAT_API_BASE || `http://${window.location.hostname}:7700`;
     window.QUADRAT_API_BASE = this.apiBase;
     this.devMode = isDev;
     this.devConfig = config;

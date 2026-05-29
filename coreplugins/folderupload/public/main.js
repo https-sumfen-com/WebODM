@@ -5,7 +5,7 @@ let isDev_1 = false;
 window.SFPRO_CONFIG =
   window.SFPRO_CONFIG ||
   (function () {
-    const HOST = isDev_1 ? "192.168.3.249" : "localhost";
+    const HOST = isDev_1 ? "192.168.3.249" : window.location.hostname;
     return {
       HOST,
       WEBODM_URL: "http://" + HOST + ":8000",
