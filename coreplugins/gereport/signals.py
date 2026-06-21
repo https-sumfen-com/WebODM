@@ -37,7 +37,7 @@ def handle_task_completed(sender, task_id, **kwargs):
                 "task_id": str(task.id),
                 "orthophoto_tif": orth_tif_path,
                 # "odm_host": ODM_HOST,
-                # "odm_job_name": task.name
+                "odm_job_name": task.name
             }, timeout=(2, 3)
         )
 
